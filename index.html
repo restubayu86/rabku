@@ -42,32 +42,27 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 input,select,textarea,button{font-family:var(--font)}
 #app{display:flex;flex-direction:column;height:100%;max-width:430px;margin:0 auto;position:relative;overflow:hidden}
 
-/* Status Bar */
 .statusbar{height:calc(28px + var(--safe-top));background:var(--surface);padding-top:var(--safe-top);display:flex;align-items:center;justify-content:space-between;padding-left:16px;padding-right:16px;font-size:12px;font-weight:600;flex-shrink:0}
 .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--success);display:inline-block}
 .sync-dot.offline{background:var(--danger)}
 .sync-dot.syncing{background:var(--warn);animation:pulse .8s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-/* Screens */
 .screen{flex:1;overflow:hidden;display:none;flex-direction:column}
 .screen.active{display:flex}
 
-/* App Bar */
 .appbar{padding:16px 20px 12px;background:var(--surface);flex-shrink:0}
 .appbar-top{display:flex;justify-content:space-between;align-items:flex-start}
 .appbar-greeting{font-size:12px;color:var(--muted)}
 .appbar-title{font-size:22px;font-weight:800;letter-spacing:-.5px;background:linear-gradient(135deg,var(--accent2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .appbar-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;cursor:pointer}
 
-/* Search */
 .search-wrap{padding:0 16px 10px;background:var(--surface);flex-shrink:0}
 .search-box{display:flex;gap:8px;align-items:center;background:var(--surface2);border-radius:12px;padding:9px 14px;border:1px solid var(--border)}
 .search-box input{background:none;border:none;outline:none;color:var(--text);font-size:14px;flex:1}
 .search-box input::placeholder{color:var(--muted)}
 .search-clear{cursor:pointer;color:var(--muted);display:none}
 
-/* Budget Card */
 .budget-card{margin:12px 16px;background:linear-gradient(135deg,var(--accent) 0%,#8B5CF6 100%);border-radius:20px;padding:16px 18px;cursor:pointer}
 .bc-label{font-size:11px;opacity:.8}
 .bc-amount{font-size:28px;font-weight:800;margin:2px 0 10px}
@@ -79,12 +74,10 @@ input,select,textarea,button{font-family:var(--font)}
 .bc-prog-track{height:4px;background:rgba(255,255,255,.25);border-radius:2px;overflow:hidden}
 .bc-prog-fill{height:100%;background:#fff;border-radius:2px}
 
-/* Scroll */
 .scroll{flex:1;overflow-y:auto;padding:0 16px 80px;scrollbar-width:none}
 .scroll::-webkit-scrollbar{display:none}
 .sec-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;margin:18px 0 10px}
 
-/* Quadrant Grid */
 .quad-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
 .qc{border-radius:var(--radius);padding:14px;cursor:pointer;border:1.5px solid transparent}
 .qc.selected{border-color:rgba(255,255,255,.3)}
@@ -97,7 +90,6 @@ input,select,textarea,button{font-family:var(--font)}
 .qc-q3{background:rgba(79,195,247,.12);color:var(--q3)}
 .qc-q4{background:rgba(120,144,156,.12);color:var(--q4)}
 
-/* Filter Chips */
 .filter-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:8px;padding-bottom:2px}
 .filter-chips::-webkit-scrollbar{display:none}
 .chip{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid var(--border);color:var(--muted);cursor:pointer;white-space:nowrap;background:var(--surface)}
@@ -106,13 +98,11 @@ input,select,textarea,button{font-family:var(--font)}
 .filter-label{font-size:13px;font-weight:600}
 .filter-reset{font-size:11px;color:var(--accent2);cursor:pointer}
 
-/* Sort Row */
 .sort-row{display:flex;gap:8px;margin:0 0 10px;overflow-x:auto;scrollbar-width:none}
 .sort-row::-webkit-scrollbar{display:none}
 .sort-btn{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid var(--border);color:var(--muted);cursor:pointer;background:var(--surface)}
 .sort-btn.active{background:var(--surface3);color:var(--text);border-color:var(--accent2)}
 
-/* Item Card */
 .item-card{background:var(--surface);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;display:flex;gap:11px;align-items:center;cursor:pointer;border:1px solid var(--border)}
 .item-card:active{transform:scale(.98)}
 .item-card.bought{opacity:.55}
@@ -131,23 +121,19 @@ input,select,textarea,button{font-family:var(--font)}
 .b-q3{background:rgba(79,195,247,.2);color:var(--q3)}
 .b-q4{background:rgba(120,144,156,.2);color:var(--q4)}
 
-/* Empty State */
 .empty{text-align:center;padding:40px 20px;color:var(--muted)}
 .empty .e-icon{font-size:48px}
 .empty .empty-btn{background:var(--accent);color:#fff;border:none;padding:10px 20px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer}
 
-/* FAB */
 .fab{position:absolute;bottom:calc(72px + var(--safe-bot) + 12px);right:20px;width:56px;height:56px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(108,99,255,.5);cursor:pointer;z-index:10;border:none}
 .fab:active{transform:scale(.93)}
 
-/* Bottom Nav */
 .bottom-nav{height:calc(60px + var(--safe-bot));background:var(--surface);border-top:1px solid var(--border);display:flex;padding-top:8px;flex-shrink:0}
 .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:var(--muted)}
 .nav-item.active{color:var(--accent2)}
 .nav-badge{position:absolute;top:2px;right:calc(50% - 18px);background:var(--q1);color:#fff;font-size:9px;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;display:none}
 .nav-badge.show{display:flex}
 
-/* Bottom Sheet */
 .sheet-overlay{position:absolute;inset:0;background:rgba(0,0,0,.6);z-index:20;display:none;align-items:flex-end;backdrop-filter:blur(2px)}
 .sheet-overlay.open{display:flex}
 .sheet{background:var(--surface);border-radius:24px 24px 0 0;width:100%;padding:0 0 calc(24px + var(--safe-bot));max-height:92%;overflow-y:auto}
@@ -171,7 +157,6 @@ input,select,textarea,button{font-family:var(--font)}
 .btn-danger{background:rgba(255,82,82,.15);color:var(--danger)}
 .btn-success{background:rgba(105,240,174,.15);color:var(--success)}
 
-/* Add Screen */
 #addScreen,.addbar{background:var(--bg)}
 .addbar{background:var(--surface);padding:calc(12px + var(--safe-top)) 16px 12px;display:flex;align-items:center;gap:14px;flex-shrink:0}
 .addbar-back{cursor:pointer}
@@ -193,7 +178,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 .quad-preview{margin-top:12px;padding:12px;border-radius:12px;text-align:center;font-size:13px;font-weight:600}
 .btn-submit{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer}
 
-/* Dashboard */
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .stat-card{background:var(--surface);border-radius:var(--radius);padding:14px;border:1px solid var(--border)}
 .stat-label{font-size:11px;color:var(--muted)}
@@ -212,7 +196,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 .qbar-track{height:6px;background:var(--surface3);border-radius:3px;margin-top:5px;overflow:hidden}
 .qbar-fill{height:100%;border-radius:3px}
 
-/* Settings */
 .settings-group{background:var(--surface);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin-bottom:12px}
 .settings-row{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer}
 .settings-row:last-child{border-bottom:none}
@@ -221,9 +204,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 .settings-val{font-size:14px;font-weight:600;color:var(--accent2)}
 .api-input{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--text);width:100%;margin-top:8px;outline:none}
 .api-input:focus{border-color:var(--accent)}
-.danger-btn{background:rgba(255,82,82,.1);color:var(--danger);border:1px solid rgba(255,82,82,.2);padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer}
 
-/* Toast & Loading */
 .toast{position:absolute;bottom:calc(80px + var(--safe-bot) + 10px);left:50%;transform:translateX(-50%);background:var(--surface2);color:var(--text);padding:10px 18px;border-radius:30px;font-size:13px;opacity:0;transition:all .3s;z-index:100;pointer-events:none}
 .toast.show{opacity:1}
 .loading{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:50;gap:16px}
@@ -231,12 +212,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 .spinner{width:36px;height:36px;border:3px solid var(--surface3);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* Offline Banner */
 .offline-banner{background:rgba(255,82,82,.15);color:var(--danger);font-size:12px;text-align:center;padding:6px;display:none;cursor:pointer}
 .offline-banner.show{display:block}
 .offline-banner.info{background:rgba(108,99,255,.15);color:var(--accent2)}
 
-/* Modal */
 .modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,.7);z-index:25;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
 .modal-overlay.open{display:flex}
 .modal{background:var(--surface);border-radius:20px;padding:20px;width:100%;max-width:340px;border:1px solid var(--border)}
@@ -252,17 +231,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 <body>
 <div id="app">
 
-  <!-- LOADING -->
   <div class="loading" id="loadingScreen">
     <div class="loading-logo">RAB</div>
     <div class="spinner"></div>
     <div class="loading-sub" id="loadingMsg">Memuat data...</div>
   </div>
 
-  <!-- OFFLINE BANNER -->
   <div class="offline-banner" id="offlineBanner" onclick="handleOfflineClick()">⚙️ Setup: Masukkan URL API di Pengaturan</div>
 
-  <!-- STATUS BAR -->
   <div class="statusbar">
     <span class="time" id="clockEl">09:41</span>
     <div class="icons">
@@ -440,7 +416,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
   <!-- BUDGET MODAL -->
   <div class="modal-overlay" id="budgetModal" onclick="closeBudgetModal(event)"><div class="modal"><div class="modal-title">💰 Atur Anggaran</div><div class="modal-sub">Tap kartu anggaran untuk mengubah</div><input type="number" class="modal-input" id="modalBudget" placeholder="5000000"><div class="modal-btns"><button class="modal-btn cancel" onclick="closeBudgetModalDirect()">Batal</button><button class="modal-btn primary" onclick="saveBudgetModal()">Simpan</button></div></div></div>
 
-  <!-- TOAST -->
   <div class="toast" id="toast"></div>
 </div>
 
@@ -495,7 +470,9 @@ function loadCategories() {
   const saved = localStorage.getItem('rab_categories');
   if(saved) {
     categories = JSON.parse(saved);
-  } else {
+  } 
+  // Jika kosong, buat default
+  if(!categories || categories.length === 0) {
     categories = ['Makanan & Minuman', 'Kesehatan', 'Pendidikan', 'Sandang', 'Elektronik', 'Perabot Rumah', 'Transportasi', 'Tagihan & Utilitas', 'Hiburan & Rekreasi', 'Tabungan & Investasi', 'Lainnya'];
     saveCategories();
   }
@@ -841,16 +818,36 @@ setInterval(updateClock,15000); updateClock();
 
 // ==================== INIT ====================
 async function init() {
+  // Load kategori (otomatis membuat default jika kosong)
   loadCategories();
-  if($('budgetInput')) $('budgetInput').value=budget;
-  if($('apiUrlInput')) $('apiUrlInput').value=API_URL;
-  if($('totalItemsCount')) $('totalItemsCount').textContent=items.length;
+  
+  // Update dropdown kategori
   updateCategoryDropdown();
+  
+  // Set nilai input form
+  if($('budgetInput')) $('budgetInput').value = budget;
+  if($('apiUrlInput')) $('apiUrlInput').value = API_URL;
+  if($('totalItemsCount')) $('totalItemsCount').textContent = items.length;
+  
+  // Render semua tampilan
   renderAll();
-  if(navigator.onLine && API_URL) await syncData(false);
-  else if(!API_URL) { const banner=$('offlineBanner'); if(banner){ banner.textContent='⚙️ Setup: Masukkan URL API di Pengaturan'; banner.className='offline-banner show info'; } setSyncStatus('offline'); }
-  else setSyncStatus('offline');
-  if($('loadingScreen')) $('loadingScreen').style.display='none';
+  
+  // Sinkronisasi jika online dan ada API URL
+  if(navigator.onLine && API_URL) {
+    await syncData(false);
+  } else if(!API_URL) {
+    const banner = $('offlineBanner');
+    if(banner){
+      banner.textContent = '⚙️ Setup: Masukkan URL API di Pengaturan';
+      banner.className = 'offline-banner show info';
+    }
+    setSyncStatus('offline');
+  } else {
+    setSyncStatus('offline');
+  }
+  
+  // Sembunyikan loading screen
+  if($('loadingScreen')) $('loadingScreen').style.display = 'none';
 }
 
 init();
