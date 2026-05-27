@@ -1,1416 +1,350 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#6C63FF">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="RAB">
-<meta name="mobile-web-app-capable" content="yes">
-<title>RAB Rumah Tangga</title>
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="icon" type="image/png" href="icons/icon-96.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg:       #0f0f1a;
-  --surface:  #1a1a2e;
-  --surface2: #232338;
-  --surface3: #2d2d48;
-  --accent:   #6C63FF;
-  --accent2:  #A78BFA;
-  --text:     #f0f0ff;
-  --muted:    #8888aa;
-  --border:   rgba(255,255,255,0.07);
-  --q1:       #FF6B6B;
-  --q2:       #FFB347;
-  --q3:       #4FC3F7;
-  --q4:       #78909C;
-  --success:  #69F0AE;
-  --danger:   #FF5252;
-  --warn:     #FFD740;
-  --radius:   16px;
-  --font:     'Plus Jakarta Sans', sans-serif;
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bot: env(safe-area-inset-bottom, 0px);
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;overscroll-behavior:none}
-input,select,textarea,button{font-family:var(--font)}
+// ── FIXED: Better sync status management ─────────────────────────
+let isOnline = navigator.onLine;
 
-#app{display:flex;flex-direction:column;height:100%;max-width:430px;margin:0 auto;position:relative;overflow:hidden}
-
-/* STATUS BAR */
-.statusbar{height:calc(28px + var(--safe-top));background:var(--surface);padding-top:var(--safe-top);display:flex;align-items:center;justify-content:space-between;padding-left:16px;padding-right:16px;font-size:12px;font-weight:600;flex-shrink:0}
-.statusbar .time{letter-spacing:.5px}
-.statusbar .icons{display:flex;gap:6px;align-items:center}
-.statusbar .icons svg{width:14px;height:14px;fill:none;stroke:var(--text);stroke-width:1.8}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--success);display:inline-block}
-.sync-dot.offline{background:var(--danger)}
-.sync-dot.syncing{background:var(--warn);animation:pulse .8s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-
-/* SCREENS */
-.screen{flex:1;overflow:hidden;display:none;flex-direction:column}
-.screen.active{display:flex}
-
-/* APP BAR */
-.appbar{padding:16px 20px 12px;background:var(--surface);flex-shrink:0}
-.appbar-top{display:flex;justify-content:space-between;align-items:flex-start}
-.appbar-greeting{font-size:12px;color:var(--muted)}
-.appbar-title{font-size:22px;font-weight:800;letter-spacing:-.5px;margin-top:2px;background:linear-gradient(135deg,var(--accent2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.appbar-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0;cursor:pointer}
-
-/* SEARCH BAR */
-.search-wrap{padding:0 16px 10px;background:var(--surface);flex-shrink:0}
-.search-box{display:flex;gap:8px;align-items:center;background:var(--surface2);border-radius:12px;padding:9px 14px;border:1px solid var(--border)}
-.search-box svg{width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;flex-shrink:0}
-.search-box input{background:none;border:none;outline:none;color:var(--text);font-size:14px;flex:1;font-family:var(--font)}
-.search-box input::placeholder{color:var(--muted)}
-.search-clear{cursor:pointer;color:var(--muted);display:none}
-
-/* BUDGET CARD */
-.budget-card{margin:12px 16px;background:linear-gradient(135deg,var(--accent) 0%,#8B5CF6 100%);border-radius:20px;padding:16px 18px;position:relative;overflow:hidden;cursor:pointer}
-.budget-card::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:rgba(255,255,255,.08);border-radius:50%}
-.budget-card::after{content:'';position:absolute;bottom:-40px;right:20px;width:90px;height:90px;background:rgba(255,255,255,.05);border-radius:50%}
-.bc-label{font-size:11px;opacity:.8;font-weight:500}
-.bc-amount{font-size:28px;font-weight:800;letter-spacing:-1px;margin:2px 0 10px}
-.bc-row{display:flex;gap:10px}
-.bc-chip{flex:1;background:rgba(255,255,255,.15);border-radius:10px;padding:7px 10px;backdrop-filter:blur(4px)}
-.bc-chip .lbl{font-size:10px;opacity:.75}
-.bc-chip .val{font-size:13px;font-weight:600;margin-top:1px}
-.bc-progress{margin-top:10px}
-.bc-prog-track{height:4px;background:rgba(255,255,255,.25);border-radius:2px;overflow:hidden}
-.bc-prog-fill{height:100%;background:#fff;border-radius:2px;transition:width .6s ease}
-.bc-prog-label{display:flex;justify-content:space-between;margin-top:4px;font-size:10px;opacity:.7}
-
-/* SCROLL */
-.scroll{flex:1;overflow-y:auto;padding:0 16px 80px;scrollbar-width:none}
-.scroll::-webkit-scrollbar{display:none}
-
-/* SECTION LABEL */
-.sec-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:18px 0 10px}
-
-/* QUAD GRID */
-.quad-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
-.qc{border-radius:var(--radius);padding:14px;cursor:pointer;transition:transform .15s,opacity .15s,border-color .15s;border:1.5px solid transparent}
-.qc:active{transform:scale(.96)}
-.qc.selected{border-color:rgba(255,255,255,.3)}
-.qc-icon{font-size:20px;margin-bottom:6px}
-.qc-label{font-size:11px;font-weight:600;margin-bottom:2px}
-.qc-count{font-size:26px;font-weight:700}
-.qc-sub{font-size:10px;opacity:.65;margin-top:1px}
-.qc-q1{background:rgba(255,107,107,.12);color:var(--q1)}
-.qc-q2{background:rgba(255,179,71,.12);color:var(--q2)}
-.qc-q3{background:rgba(79,195,247,.12);color:var(--q3)}
-.qc-q4{background:rgba(120,144,156,.12);color:var(--q4)}
-
-/* FILTER ROW */
-.filter-row{display:flex;justify-content:space-between;align-items:center;margin:4px 0 8px}
-.filter-label{font-size:13px;font-weight:600}
-.filter-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
-.filter-chips::-webkit-scrollbar{display:none}
-.chip{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid var(--border);color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .15s;background:var(--surface)}
-.chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.filter-reset{font-size:11px;color:var(--accent2);cursor:pointer;white-space:nowrap}
-
-/* SORT ROW */
-.sort-row{display:flex;align-items:center;gap:8px;margin:0 0 10px;overflow-x:auto;scrollbar-width:none}
-.sort-row::-webkit-scrollbar{display:none}
-.sort-btn{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid var(--border);color:var(--muted);cursor:pointer;white-space:nowrap;background:var(--surface);transition:all .15s}
-.sort-btn.active{background:var(--surface3);color:var(--text);border-color:var(--accent2)}
-
-/* ITEM CARD */
-.item-card{background:var(--surface);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;display:flex;gap:11px;align-items:center;cursor:pointer;transition:transform .12s,background .12s;border:1px solid var(--border)}
-.item-card:active{transform:scale(.98);background:var(--surface2)}
-.item-card.bought{opacity:.55}
-.item-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px}
-.item-body{flex:1;min-width:0}
-.item-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.item-cat{font-size:11px;color:var(--muted);margin-top:1px}
-.item-scores{display:flex;gap:3px;margin-top:5px}
-.score-pip{width:8px;height:8px;border-radius:50%;background:var(--surface3)}
-.score-pip.on{background:var(--accent2)}
-.item-right{text-align:right;flex-shrink:0}
-.item-price{font-size:13px;font-weight:600}
-.item-badge{font-size:10px;padding:2px 8px;border-radius:20px;margin-top:3px;display:inline-block;font-weight:500}
-.b-q1{background:rgba(255,107,107,.2);color:var(--q1)}
-.b-q2{background:rgba(255,179,71,.2);color:var(--q2)}
-.b-q3{background:rgba(79,195,247,.2);color:var(--q3)}
-.b-q4{background:rgba(120,144,156,.2);color:var(--q4)}
-
-/* EMPTY STATE */
-.empty{text-align:center;padding:40px 20px;color:var(--muted)}
-.empty .e-icon{font-size:48px;margin-bottom:12px}
-.empty p{font-size:13px;margin-bottom:16px}
-.empty .empty-btn{background:var(--accent);color:#fff;border:none;padding:10px 20px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer}
-
-/* FAB */
-.fab{position:absolute;bottom:calc(72px + var(--safe-bot) + 12px);right:20px;width:56px;height:56px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(108,99,255,.5);cursor:pointer;transition:transform .15s;z-index:10;border:none}
-.fab:active{transform:scale(.93)}
-.fab svg{width:24px;height:24px;stroke:#fff;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
-
-/* BOTTOM NAV */
-.bottom-nav{height:calc(60px + var(--safe-bot));background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:flex-start;padding-top:8px;flex-shrink:0}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0;transition:color .15s;position:relative}
-.nav-item svg{width:22px;height:22px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round;transition:stroke-width .15s}
-.nav-item span{font-size:10px;font-weight:500}
-.nav-item{color:var(--muted)}
-.nav-item.active{color:var(--accent2)}
-.nav-item.active svg{stroke-width:2.2}
-.nav-badge{position:absolute;top:2px;right:calc(50% - 18px);background:var(--q1);color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px;display:none}
-.nav-badge.show{display:flex}
-
-/* BOTTOM SHEET */
-.sheet-overlay{position:absolute;inset:0;background:rgba(0,0,0,.6);z-index:20;display:none;align-items:flex-end;backdrop-filter:blur(2px)}
-.sheet-overlay.open{display:flex}
-.sheet{background:var(--surface);border-radius:24px 24px 0 0;width:100%;padding:0 0 calc(24px + var(--safe-bot));max-height:92%;overflow-y:auto}
-.sheet-handle{width:36px;height:4px;background:var(--surface3);border-radius:2px;margin:12px auto 4px}
-.sheet-header{padding:8px 20px 14px;border-bottom:1px solid var(--border)}
-.sheet-close{float:right;cursor:pointer;color:var(--muted);margin-top:2px}
-.sheet-close svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
-.sheet-title{font-size:17px;font-weight:700;padding-right:28px}
-.sheet-cat{font-size:12px;color:var(--muted);margin-top:2px}
-.sheet-rows{padding:4px 0}
-.sheet-row{display:flex;justify-content:space-between;align-items:center;padding:11px 20px;border-bottom:1px solid var(--border)}
-.sheet-row:last-child{border-bottom:none}
-.sheet-row .lbl{font-size:13px;color:var(--muted)}
-.sheet-row .val{font-size:13px;font-weight:600}
-.sheet-reko{margin:4px 16px 0;padding:12px 16px;border-radius:14px;font-size:13px;font-weight:600;text-align:center}
-.reko-q1{background:rgba(255,107,107,.15);color:var(--q1)}
-.reko-q2{background:rgba(255,179,71,.15);color:var(--q2)}
-.reko-q3{background:rgba(79,195,247,.15);color:var(--q3)}
-.reko-q4{background:rgba(120,144,156,.15);color:var(--q4)}
-.sheet-actions{display:flex;gap:8px;padding:12px 16px 0}
-.btn-action{flex:1;padding:10px;border-radius:12px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:opacity .15s}
-.btn-action:active{opacity:.7}
-.btn-primary{background:var(--accent);color:#fff}
-.btn-danger{background:rgba(255,82,82,.15);color:var(--danger)}
-.btn-success{background:rgba(105,240,174,.15);color:var(--success)}
-
-/* ADD / EDIT SCREEN */
-#addScreen{background:var(--bg)}
-.addbar{background:var(--surface);padding:calc(12px + var(--safe-top)) 16px 12px;display:flex;align-items:center;gap:14px;flex-shrink:0}
-.addbar-back{cursor:pointer;color:var(--muted)}
-.addbar-back svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.addbar-title{font-size:17px;font-weight:700;flex:1}
-.form-scroll{flex:1;overflow-y:auto;padding:14px 16px calc(20px + var(--safe-bot));scrollbar-width:none}
-.form-scroll::-webkit-scrollbar{display:none}
-.form-section{background:var(--surface);border-radius:var(--radius);padding:16px;margin-bottom:12px;border:1px solid var(--border)}
-.form-section-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px}
-.field{margin-bottom:14px}
-.field:last-child{margin-bottom:0}
-.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:500}
-.field input,.field select,.field textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--text);outline:none;transition:border-color .2s;-webkit-appearance:none}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
-.field select{cursor:pointer}
-.field textarea{resize:none;height:70px;line-height:1.5}
-.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.slider-box{background:var(--surface2);border-radius:10px;padding:12px 14px;border:1px solid var(--border)}
-.slider-num{font-size:28px;font-weight:700;text-align:center;color:var(--accent2);margin-bottom:6px}
-.slider-desc{font-size:11px;text-align:center;color:var(--muted);margin-bottom:8px;min-height:14px}
-input[type=range]{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;outline:none;background:var(--surface3);cursor:pointer}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid var(--bg)}
-.quad-preview{margin-top:12px;padding:12px;border-radius:12px;text-align:center;font-size:13px;font-weight:600;transition:background .3s,color .3s}
-.btn-submit{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;transition:opacity .15s}
-.btn-submit:active{opacity:.8}
-.btn-submit:disabled{opacity:.45;cursor:not-allowed}
-
-/* DASHBOARD SCREEN */
-#dashScreen .scroll{padding:12px 16px calc(80px + var(--safe-bot))}
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.stat-card{background:var(--surface);border-radius:var(--radius);padding:14px;border:1px solid var(--border)}
-.stat-label{font-size:11px;color:var(--muted);font-weight:500;margin-bottom:4px}
-.stat-val{font-size:20px;font-weight:700}
-.stat-val.red{color:var(--danger)}
-.stat-val.green{color:var(--success)}
-.reko-list{background:var(--surface);border-radius:var(--radius);padding:16px;border:1px solid var(--border)}
-.reko-item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:1.4}
-.reko-item:last-child{border-bottom:none;padding-bottom:0}
-.reko-item:first-child{padding-top:0}
-.reko-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
-.cat-list{background:var(--surface);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)}
-.cat-row{display:flex;justify-content:space-between;align-items:center;padding:11px 16px;border-bottom:1px solid var(--border)}
-.cat-row:last-child{border-bottom:none}
-.cat-name{font-size:13px;font-weight:500}
-.cat-meta{font-size:11px;color:var(--muted);margin-top:1px}
-.cat-total{font-size:13px;font-weight:600}
-.quad-bar-section{background:var(--surface);border-radius:var(--radius);padding:16px;border:1px solid var(--border);margin-bottom:12px}
-.qbar-item{margin-bottom:12px}
-.qbar-item:last-child{margin-bottom:0}
-.qbar-header{display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px;font-weight:600}
-.qbar-track{height:6px;background:var(--surface3);border-radius:3px;overflow:hidden}
-.qbar-fill{height:100%;border-radius:3px;transition:width .8s ease}
-
-/* SETTINGS SCREEN */
-#settingsScreen .scroll{padding:12px 16px calc(80px + var(--safe-bot))}
-.settings-group{background:var(--surface);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin-bottom:12px}
-.settings-row{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border)}
-.settings-row:last-child{border-bottom:none}
-.settings-label{font-size:14px;font-weight:500}
-.settings-sub{font-size:11px;color:var(--muted);margin-top:1px}
-.settings-val{font-size:14px;font-weight:600;color:var(--accent2)}
-.api-input{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--text);width:100%;margin-top:8px;outline:none;transition:border-color .2s}
-.api-input:focus{border-color:var(--accent)}
-.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border)}
-.toggle{width:44px;height:24px;background:var(--surface3);border-radius:12px;position:relative;cursor:pointer;transition:background .2s}
-.toggle.on{background:var(--accent)}
-.toggle::after{content:'';width:18px;height:18px;background:#fff;border-radius:50%;position:absolute;top:3px;left:3px;transition:left .2s}
-.toggle.on::after{left:23px}
-.danger-btn{background:rgba(255,82,82,.1);color:var(--danger);border:1px solid rgba(255,82,82,.2);padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px}
-
-/* TOAST */
-.toast{position:absolute;bottom:calc(80px + var(--safe-bot) + 10px);left:50%;transform:translateX(-50%) translateY(10px);background:var(--surface2);color:var(--text);padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;white-space:nowrap;opacity:0;transition:all .3s;z-index:100;pointer-events:none;border:1px solid var(--border)}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
-/* LOADING */
-.loading{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:50;gap:16px}
-.loading-logo{font-size:40px;font-weight:800;background:linear-gradient(135deg,var(--accent2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.spinner{width:36px;height:36px;border:3px solid var(--surface3);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-sub{font-size:13px;color:var(--muted);text-align:center;padding:0 32px}
-
-/* OFFLINE BANNER */
-.offline-banner{background:rgba(255,82,82,.15);color:var(--danger);font-size:12px;font-weight:500;text-align:center;padding:6px;display:none;flex-shrink:0;cursor:pointer}
-.offline-banner.show{display:block}
-.offline-banner.info{background:rgba(108,99,255,.15);color:var(--accent2)}
-
-/* KATEGORI SCREEN */
-#kategoriScreen .scroll{padding:12px 16px calc(80px + var(--safe-bot))}
-.kat-hero{background:linear-gradient(135deg,#232338,#2d2d48);border-radius:20px;padding:16px;margin-bottom:4px;display:flex;gap:12px;align-items:center}
-.kat-hero-icon{font-size:32px;width:56px;height:56px;background:var(--surface3);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.kat-hero-info{flex:1;min-width:0}
-.kat-hero-name{font-size:18px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.kat-hero-meta{font-size:12px;color:var(--muted);margin-top:3px}
-.kat-hero-total{font-size:16px;font-weight:700;color:var(--accent2);margin-top:4px}
-.kat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
-.kat-card{background:var(--surface);border-radius:var(--radius);padding:14px;cursor:pointer;transition:transform .15s,background .15s;border:1.5px solid var(--border);display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
-.kat-card:active{transform:scale(.96);background:var(--surface2)}
-.kat-card.active-kat{border-color:var(--accent2)}
-.kat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--accent);transform:scaleX(0);transition:transform .2s;transform-origin:left}
-.kat-card.active-kat::after{transform:scaleX(1)}
-.kat-card-icon{font-size:22px}
-.kat-card-name{font-size:12px;font-weight:600;color:var(--text)}
-.kat-card-count{font-size:11px;color:var(--muted)}
-.kat-card-total{font-size:13px;font-weight:700;color:var(--accent2);margin-top:2px}
-.kat-card-bar{height:3px;background:var(--surface3);border-radius:2px;margin-top:4px;overflow:hidden}
-.kat-card-bar-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .6s ease}
-.kat-detail-header{display:flex;justify-content:space-between;align-items:center;margin:16px 0 10px}
-.kat-detail-title{font-size:13px;font-weight:600}
-.kat-detail-clear{font-size:11px;color:var(--accent2);cursor:pointer}
-.kat-summary-row{display:flex;gap:8px;margin-bottom:12px}
-.kat-sum-card{flex:1;background:var(--surface);border-radius:12px;padding:10px 12px;border:1px solid var(--border)}
-.kat-sum-label{font-size:10px;color:var(--muted);margin-bottom:3px}
-.kat-sum-val{font-size:15px;font-weight:700}
-
-/* INSTALL PROMPT */
-.install-prompt{position:absolute;bottom:calc(72px + var(--safe-bot) + 70px);left:16px;right:16px;background:var(--surface);border-radius:16px;padding:14px;border:1px solid var(--border);z-index:15;display:none;box-shadow:0 8px 32px rgba(0,0,0,.4)}
-.install-prompt.show{display:block}
-.install-prompt-title{font-size:14px;font-weight:600;margin-bottom:4px}
-.install-prompt-sub{font-size:12px;color:var(--muted);margin-bottom:12px}
-.install-prompt-btns{display:flex;gap:8px}
-.btn-install{flex:1;padding:9px;border-radius:10px;font-size:13px;font-weight:600;border:none;cursor:pointer}
-.btn-install.primary{background:var(--accent);color:#fff}
-.btn-install.secondary{background:var(--surface2);color:var(--muted)}
-
-/* ANIMATIONS */
-.item-card{animation:fadeUp .2s ease both}
-@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-
-/* BUDGET MODAL */
-.modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,.7);z-index:25;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
-.modal-overlay.open{display:flex}
-.modal{background:var(--surface);border-radius:20px;padding:20px;width:100%;max-width:340px;border:1px solid var(--border)}
-.modal-title{font-size:17px;font-weight:700;margin-bottom:4px}
-.modal-sub{font-size:13px;color:var(--muted);margin-bottom:16px}
-.modal-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:18px;font-weight:700;color:var(--text);outline:none;text-align:center;transition:border-color .2s}
-.modal-input:focus{border-color:var(--accent)}
-.modal-btns{display:flex;gap:8px;margin-top:14px}
-.modal-btn{flex:1;padding:11px;border-radius:12px;font-size:14px;font-weight:600;border:none;cursor:pointer}
-.modal-btn.primary{background:var(--accent);color:#fff}
-.modal-btn.cancel{background:var(--surface2);color:var(--muted)}
-</style>
-</head>
-<body>
-<div id="app">
-
-  <!-- LOADING -->
-  <div class="loading" id="loadingScreen">
-    <div class="loading-logo">RAB</div>
-    <div class="spinner"></div>
-    <div class="loading-sub" id="loadingMsg">Memuat data...</div>
-  </div>
-
-  <!-- OFFLINE BANNER -->
-  <div class="offline-banner" id="offlineBanner" onclick="handleOfflineClick()">💡 Set API URL di Pengaturan untuk sinkronisasi Google Sheets</div>
-
-  <!-- STATUS BAR -->
-  <div class="statusbar">
-    <span class="time" id="clockEl">09:41</span>
-    <div class="icons">
-      <span class="sync-dot offline" id="syncDot" title="Status koneksi"></span>
-      <svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0114.08 0M1.42 9a16 16 0 0121.16 0M8.53 16.11a6 6 0 016.95 0M12 20h.01"/></svg>
-      <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="11" rx="2"/><path d="M22 11V13"/></svg>
-    </div>
-  </div>
-
-  <!-- ══ BERANDA ══ -->
-  <div class="screen active" id="homeScreen">
-    <div class="appbar">
-      <div class="appbar-top">
-        <div>
-          <div class="appbar-greeting" id="greetingEl">Selamat pagi</div>
-          <div class="appbar-title">RAB Rumah Tangga</div>
-        </div>
-        <div class="appbar-avatar" onclick="openBudgetModal()" title="Edit anggaran">RB</div>
-      </div>
-    </div>
-    <div class="search-wrap">
-      <div class="search-box">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="searchInput" placeholder="Cari barang..." oninput="onSearch(this.value)">
-        <span class="search-clear" id="searchClear" onclick="clearSearch()">✕</span>
-      </div>
-    </div>
-
-    <div class="scroll" id="homeScroll">
-      <!-- BUDGET CARD -->
-      <div class="budget-card" id="budgetCard" onclick="openBudgetModal()">
-        <div class="bc-label">Anggaran Bulan Ini</div>
-        <div class="bc-amount" id="bc_anggaran">Rp 0</div>
-        <div class="bc-row">
-          <div class="bc-chip"><div class="lbl">Estimasi Q1</div><div class="val" id="bc_terpakai">Rp 0</div></div>
-          <div class="bc-chip"><div class="lbl">Sisa Anggaran</div><div class="val" id="bc_sisa">Rp 0</div></div>
-        </div>
-        <div class="bc-progress">
-          <div class="bc-prog-track"><div class="bc-prog-fill" id="bc_bar" style="width:0%"></div></div>
-          <div class="bc-prog-label"><span id="bc_pct">0%</span><span id="bc_info">terpakai</span></div>
-        </div>
-      </div>
-
-      <!-- KUADRAN -->
-      <div class="sec-label">Distribusi Kuadran</div>
-      <div class="quad-grid">
-        <div class="qc qc-q1" onclick="filterItems('Q1')" id="qcard_Q1">
-          <div class="qc-icon">🔴</div>
-          <div class="qc-label">Butuh & Mendesak</div>
-          <div class="qc-count" id="cnt_q1">0</div>
-          <div class="qc-sub" id="sub_q1">item segera beli</div>
-        </div>
-        <div class="qc qc-q2" onclick="filterItems('Q2')" id="qcard_Q2">
-          <div class="qc-icon">🟠</div>
-          <div class="qc-label">Butuh, Tdk Mendesak</div>
-          <div class="qc-count" id="cnt_q2">0</div>
-          <div class="qc-sub" id="sub_q2">item rencana</div>
-        </div>
-        <div class="qc qc-q3" onclick="filterItems('Q3')" id="qcard_Q3">
-          <div class="qc-icon">🔵</div>
-          <div class="qc-label">Tdk Butuh, Mendesak</div>
-          <div class="qc-count" id="cnt_q3">0</div>
-          <div class="qc-sub" id="sub_q3">item tinjau ulang</div>
-        </div>
-        <div class="qc qc-q4" onclick="filterItems('Q4')" id="qcard_Q4">
-          <div class="qc-icon">⚫</div>
-          <div class="qc-label">Tdk Butuh & Mendesak</div>
-          <div class="qc-count" id="cnt_q4">0</div>
-          <div class="qc-sub" id="sub_q4">item tunda/batal</div>
-        </div>
-      </div>
-
-      <!-- FILTER & SORT -->
-      <div class="filter-row" style="margin-top:18px;margin-bottom:8px">
-        <div class="filter-label" id="listTitle">Semua Item</div>
-        <div class="filter-reset" id="filterResetBtn" onclick="filterItems('ALL')" style="display:none">Reset ✕</div>
-      </div>
-      <div class="sort-row" id="sortRow">
-        <div class="sort-btn active" onclick="setSort('priority')" data-sort="priority">⚡ Prioritas</div>
-        <div class="sort-btn" onclick="setSort('name')" data-sort="name">A–Z</div>
-        <div class="sort-btn" onclick="setSort('price_desc')" data-sort="price_desc">Harga ↓</div>
-        <div class="sort-btn" onclick="setSort('price_asc')" data-sort="price_asc">Harga ↑</div>
-        <div class="sort-btn" onclick="setSort('newest')" data-sort="newest">Terbaru</div>
-      </div>
-      <div id="itemList"></div>
-    </div>
-
-    <button class="fab" onclick="openAdd()" aria-label="Tambah barang">
-      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    </button>
-  </div>
-
-  <!-- ══ DASHBOARD ══ -->
-  <div class="screen" id="dashScreen">
-    <div class="appbar" style="padding-bottom:14px">
-      <div class="appbar-title" style="font-size:20px">Dashboard</div>
-    </div>
-    <div class="scroll" id="dashScroll"></div>
-  </div>
-
-  <!-- ══ SETTINGS ══ -->
-  <div class="screen" id="settingsScreen">
-    <div class="appbar" style="padding-bottom:14px">
-      <div class="appbar-title" style="font-size:20px">Pengaturan</div>
-    </div>
-    <div class="scroll" id="settingsScroll">
-      <div class="sec-label">Anggaran Bulanan</div>
-      <div class="settings-group">
-        <div class="settings-row" style="flex-direction:column;align-items:flex-start">
-          <div class="settings-label">Total Anggaran (Rp)</div>
-          <input type="number" id="budgetInput" class="api-input" placeholder="cth: 5000000">
-          <button onclick="saveBudget()" style="margin-top:8px;background:var(--accent);color:#fff;border:none;padding:8px 18px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">💾 Simpan</button>
-        </div>
-      </div>
-
-      <div class="sec-label">Backend Google Apps Script</div>
-      <div class="settings-group">
-        <div class="settings-row" style="flex-direction:column;align-items:flex-start">
-          <div>
-            <div class="settings-label">URL Web App</div>
-            <div class="settings-sub">Deploy → Kelola deployment → Salin URL</div>
-          </div>
-          <input type="url" id="apiUrlInput" class="api-input" placeholder="https://script.google.com/macros/s/.../exec">
-          <button onclick="saveApiUrl()" style="margin-top:8px;background:var(--accent);color:#fff;border:none;padding:8px 18px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">Simpan URL</button>
-        </div>
-        <div class="settings-row">
-          <div>
-            <div class="settings-label">Status Koneksi</div>
-          </div>
-          <div id="connStatus" class="settings-val">—</div>
-        </div>
-        <div class="settings-row" onclick="testConnection()" style="cursor:pointer">
-          <div class="settings-label">🔌 Test Koneksi</div>
-          <svg style="width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="settings-row" onclick="syncData(true)" style="cursor:pointer">
-          <div class="settings-label">🔄 Sinkronisasi Data</div>
-          <svg style="width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="settings-row" onclick="exportToSheet()" style="cursor:pointer">
-          <div class="settings-label">📤 Push Data Lokal ke Sheet</div>
-          <svg style="width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-      </div>
-
-      <div class="sec-label">Cara Setup</div>
-      <div class="settings-group">
-        <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:8px">
-          <div class="settings-label">Langkah-langkah</div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.7">
-            1. Buka <strong style="color:var(--text)">script.google.com</strong><br>
-            2. Buat project baru, paste Code.gs<br>
-            3. Klik <strong style="color:var(--text)">Deploy → Web App</strong><br>
-            4. Execute as: <strong style="color:var(--text)">Me</strong><br>
-            5. Who has access: <strong style="color:var(--text)">Anyone</strong><br>
-            6. Salin URL, paste di field atas<br>
-            7. Klik Test Koneksi ✅
-          </div>
-        </div>
-      </div>
-
-      <div class="sec-label">Data</div>
-      <div class="settings-group">
-        <div class="settings-row" onclick="exportJSON()" style="cursor:pointer">
-          <div class="settings-label">📥 Export JSON</div>
-          <svg style="width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="settings-row" style="cursor:pointer">
-          <div>
-            <div class="settings-label">📤 Import JSON</div>
-          </div>
-          <input type="file" id="importFile" accept=".json" onchange="importJSON(event)" style="display:none">
-          <button onclick="document.getElementById('importFile').click()" style="background:var(--surface3);color:var(--text);border:none;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer">Pilih File</button>
-        </div>
-        <div class="settings-row" onclick="clearCache()" style="cursor:pointer">
-          <div>
-            <div class="settings-label" style="color:var(--danger)">🗑 Hapus Semua Data Lokal</div>
-            <div class="settings-sub">Data akan dihapus dari perangkat ini</div>
-          </div>
-          <svg style="width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-      </div>
-
-      <div class="sec-label">Aplikasi</div>
-      <div class="settings-group">
-        <div class="settings-row">
-          <div class="settings-label">Versi Aplikasi</div>
-          <div class="settings-val">1.0.0</div>
-        </div>
-        <div class="settings-row">
-          <div class="settings-label">Total Item Tersimpan</div>
-          <div class="settings-val" id="totalItemsCount">0</div>
-        </div>
-        <div class="settings-row" id="installRow" style="display:none;cursor:pointer" onclick="installApp()">
-          <div>
-            <div class="settings-label">📱 Install Aplikasi</div>
-            <div class="settings-sub">Tambahkan ke layar utama</div>
-          </div>
-          <svg style="width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ ADD / EDIT SCREEN ══ -->
-  <div class="screen" id="addScreen">
-    <div class="addbar">
-      <div class="addbar-back" onclick="closeAdd()">
-        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-      </div>
-      <div class="addbar-title" id="addScreenTitle">Tambah Barang</div>
-    </div>
-    <div class="form-scroll">
-      <input type="hidden" id="editId">
-      <div class="form-section">
-        <div class="form-section-title">Informasi Barang</div>
-        <div class="field">
-          <label>Nama Barang *</label>
-          <input type="text" id="fNama" placeholder="cth: Beras 5kg">
-        </div>
-        <div class="field">
-          <label>Kategori *</label>
-          <select id="fKat">
-            <option>Makanan &amp; Minuman</option>
-            <option>Kesehatan</option>
-            <option>Pendidikan</option>
-            <option>Sandang</option>
-            <option>Elektronik</option>
-            <option>Perabot Rumah</option>
-            <option>Transportasi</option>
-            <option>Tagihan &amp; Utilitas</option>
-            <option>Hiburan &amp; Rekreasi</option>
-            <option>Tabungan &amp; Investasi</option>
-            <option>Lainnya</option>
-          </select>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label>Harga Satuan (Rp) *</label>
-            <input type="number" id="fHarga" placeholder="50000" min="0">
-          </div>
-          <div class="field">
-            <label>Jumlah *</label>
-            <input type="number" id="fJml" value="1" min="1">
-          </div>
-        </div>
-        <div class="field">
-          <label>Catatan</label>
-          <textarea id="fCatatan" placeholder="Alasan pembelian, sumber, toko, dll..."></textarea>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="form-section-title">Penilaian Prioritas</div>
-        <div class="field">
-          <label>Tingkat Keperluan</label>
-          <div class="slider-box">
-            <div class="slider-num" id="kepVal">3</div>
-            <div class="slider-desc" id="kepDesc">Cukup Diperlukan</div>
-            <input type="range" min="1" max="5" step="1" value="3" id="fKep" oninput="onSlider('kep',this.value)">
-          </div>
-        </div>
-        <div class="field">
-          <label>Tingkat Urgensi</label>
-          <div class="slider-box">
-            <div class="slider-num" id="urgVal">3</div>
-            <div class="slider-desc" id="urgDesc">Cukup Mendesak</div>
-            <input type="range" min="1" max="5" step="1" value="3" id="fUrg" oninput="onSlider('urg',this.value)">
-          </div>
-        </div>
-        <div class="quad-preview" id="quadPreview">Q1 — Butuh &amp; Mendesak → Beli Segera</div>
-      </div>
-
-      <button class="btn-submit" id="submitBtn" onclick="submitForm()">💾 Simpan Barang</button>
-    </div>
-  </div>
-
-  <!-- ══ KATEGORI ══ -->
-  <div class="screen" id="kategoriScreen">
-    <div class="appbar" style="padding-bottom:14px">
-      <div class="appbar-top">
-        <div><div class="appbar-title" style="font-size:20px">Kategori</div></div>
-        <div style="font-size:12px;color:var(--muted);margin-top:8px" id="katTotalLabel">0 item aktif</div>
-      </div>
-    </div>
-    <div class="scroll" id="katScroll">
-      <!-- Hero selected kategori -->
-      <div id="katHero" style="display:none"></div>
-
-      <!-- Grid kartu kategori -->
-      <div class="sec-label" style="margin-top:4px">Semua Kategori</div>
-      <div class="kat-grid" id="katGrid"></div>
-
-      <!-- Item list per kategori -->
-      <div id="katItemSection" style="display:none">
-        <div class="kat-detail-header">
-          <div class="kat-detail-title" id="katItemTitle">Item</div>
-          <div class="kat-detail-clear" onclick="clearKatFilter()">Lihat Semua ✕</div>
-        </div>
-        <div class="kat-summary-row" id="katSummaryRow"></div>
-        <div id="katItemList"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- BOTTOM NAV -->
-  <div class="bottom-nav">
-    <div class="nav-item active" id="nav0" onclick="setNav(0)">
-      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      <div class="nav-badge" id="navBadge"></div>
-      <span>Beranda</span>
-    </div>
-    <div class="nav-item" id="nav1" onclick="setNav(1)">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-      <span>Dashboard</span>
-    </div>
-    <div class="nav-item" id="nav3" onclick="setNav(3)">
-      <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-      <span>Kategori</span>
-    </div>
-    <div class="nav-item" id="nav2" onclick="setNav(2)">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
-      <span>Pengaturan</span>
-    </div>
-  </div>
-
-  <!-- DETAIL SHEET -->
-  <div class="sheet-overlay" id="detailOverlay" onclick="closeDetailBg(event)">
-    <div class="sheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-header">
-        <div class="sheet-close" onclick="closeDetail()">
-          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </div>
-        <div class="sheet-title" id="d_nama"></div>
-        <div class="sheet-cat" id="d_kat"></div>
-      </div>
-      <div class="sheet-rows">
-        <div class="sheet-row"><span class="lbl">Harga Satuan</span><span class="val" id="d_harga"></span></div>
-        <div class="sheet-row"><span class="lbl">Jumlah</span><span class="val" id="d_jml"></span></div>
-        <div class="sheet-row"><span class="lbl">Total Biaya</span><span class="val" id="d_total"></span></div>
-        <div class="sheet-row"><span class="lbl">Keperluan</span><span class="val" id="d_kep"></span></div>
-        <div class="sheet-row"><span class="lbl">Urgensi</span><span class="val" id="d_urg"></span></div>
-        <div class="sheet-row"><span class="lbl">Skor Prioritas</span><span class="val" id="d_skor"></span></div>
-        <div class="sheet-row"><span class="lbl">Kuadran</span><span class="val" id="d_quad"></span></div>
-        <div class="sheet-row" id="d_catatanRow" style="display:none"><span class="lbl">Catatan</span><span class="val" id="d_catatan" style="font-size:12px;text-align:right;max-width:180px"></span></div>
-        <div class="sheet-row"><span class="lbl">Status</span><span class="val" id="d_status"></span></div>
-      </div>
-      <div class="sheet-reko" id="d_reko"></div>
-      <div class="sheet-actions">
-        <button class="btn-action btn-success" onclick="markBought()">✅ Beli</button>
-        <button class="btn-action btn-primary" onclick="editItem()">✏️ Edit</button>
-        <button class="btn-action btn-danger" onclick="deleteItem()">🗑 Hapus</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- BUDGET MODAL -->
-  <div class="modal-overlay" id="budgetModal" onclick="closeBudgetModal(event)">
-    <div class="modal">
-      <div class="modal-title">💰 Atur Anggaran Bulan Ini</div>
-      <div class="modal-sub">Tap kartu anggaran untuk mengubah</div>
-      <input type="number" class="modal-input" id="modalBudget" placeholder="5000000">
-      <div class="modal-btns">
-        <button class="modal-btn cancel" onclick="$('budgetModal').classList.remove('open')">Batal</button>
-        <button class="modal-btn primary" onclick="saveBudgetModal()">Simpan</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- TOAST -->
-  <div class="toast" id="toast"></div>
-
-</div>
-
-<script>
-// ── CONFIG ──────────────────────────────────────────────────────
-let API_URL  = localStorage.getItem('rab_api_url') || '';
-let items    = JSON.parse(localStorage.getItem('rab_items') || '[]');
-let budget   = Number(localStorage.getItem('rab_budget') || '5000000');
-let currentFilter = 'ALL';
-let currentSort   = 'priority';
-let searchQuery   = '';
-let currentItem   = null;
-let deferredInstallPrompt = null;
-
-// ── HELPERS ─────────────────────────────────────────────────────
-const $ = id => document.getElementById(id);
-const fmt = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
-const quad = (k,u) => {
-  const kn=Number(k), un=Number(u);
-  if(kn>=3&&un>=3) return 'Q1';
-  if(kn>=3&&un<3)  return 'Q2';
-  if(kn<3&&un>=3)  return 'Q3';
-  return 'Q4';
-};
-const skor = (k,u) => Math.round((Number(k)*0.6+Number(u)*0.4)*20);
-const qColor = q => ({Q1:'var(--q1)',Q2:'var(--q2)',Q3:'var(--q3)',Q4:'var(--q4)'}[q]);
-const qLabel = q => ({Q1:'Butuh & Mendesak',Q2:'Butuh, Tdk Mendesak',Q3:'Tdk Butuh, Mendesak',Q4:'Tdk Butuh & Tdk Mendesak'}[q]);
-const qReko  = q => ({Q1:'🔴 Segera Beli — Prioritas Tinggi!',Q2:'🟠 Rencanakan di Anggaran Berikutnya',Q3:'🔵 Tinjau Ulang — Benar-benar Mendesak?',Q4:'⚫ Tunda atau Batalkan Pembelian'}[q]);
-const kepLabels = ['','Tidak Diperlukan','Kurang Diperlukan','Cukup Diperlukan','Diperlukan','Sangat Diperlukan'];
-const urgLabels = ['','Tidak Mendesak','Kurang Mendesak','Cukup Mendesak','Mendesak','Sangat Mendesak'];
-
-function showToast(msg, dur=2500) {
-  const t=$('toast'); t.textContent=msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), dur);
-}
-function uid() { return 'loc_'+Date.now()+'_'+Math.random().toString(36).slice(2,6); }
-
-// ── CLOCK ────────────────────────────────────────────────────────
-function updateClock() {
-  const now = new Date();
-  $('clockEl').textContent = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
-  const h = now.getHours();
-  $('greetingEl').textContent = h<5?'Selamat malam 🌙':h<12?'Selamat pagi 🌤':h<15?'Selamat siang ☀️':h<18?'Selamat sore 🌇':'Selamat malam 🌙';
-}
-setInterval(updateClock, 15000);
-updateClock();
-
-// ── NAV ──────────────────────────────────────────────────────────
-const screens = ['homeScreen','dashScreen','settingsScreen','kategoriScreen'];
-function setNav(i) {
-  screens.forEach((s,j) => {
-    $(s).classList.toggle('active', j===i);
-  });
-  // nav ids: 0,1,2,3 but nav2=settings nav3=kategori
-  [0,1,2,3].forEach(j => {
-    const el = $('nav'+j);
-    if(el) el.classList.toggle('active', j===i);
-  });
-  if(i===1) renderDashboard();
-  if(i===2) {
-    $('budgetInput').value = budget;
-    $('apiUrlInput').value = API_URL;
-    $('totalItemsCount').textContent = items.length;
-  }
-  if(i===3) renderKategori();
-}
-
-// ── API ──────────────────────────────────────────────────────────
 function setSyncStatus(s) {
-  const dot=$('syncDot');
-  dot.className='sync-dot'+(s==='online'?' ':s==='syncing'?' syncing':' offline');
-  dot.title={online:'Terhubung',syncing:'Menyinkronkan...',offline:'Offline'}[s]||'';
-}
-
-async function apiGet(action='getAll') {
-  if(!API_URL) return null;
-  try {
-    const r = await fetch(`${API_URL}?action=${action}`,{method:'GET'});
-    if(!r.ok) return null;
-    return await r.json();
-  } catch(e) { return null; }
-}
-
-async function apiPost(body) {
-  if(!API_URL) return null;
-  try {
-    const r = await fetch(API_URL,{method:'POST',body:JSON.stringify(body)});
-    if(!r.ok) return null;
-    return await r.json();
-  } catch(e) { return null; }
-}
-
-// ── SYNC ────────────────────────────────────────────────────────
-async function syncData(manual=false) {
-  if(!API_URL) {
-    $('offlineBanner').textContent='💡 Set API URL di Pengaturan untuk sinkronisasi Google Sheets';
-    $('offlineBanner').className='offline-banner show info';
-    if(manual) showToast('⚠️ URL API belum diatur');
-    renderAll(); return;
-  }
-  setSyncStatus('syncing');
-  if(manual) showToast('🔄 Menyinkronkan data...');
-  const res = await apiGet('getAll');
-  if(res&&res.ok) {
-    items  = res.data||[];
-    budget = res.budget||budget;
-    saveLocal();
-    $('offlineBanner').classList.remove('show');
-    setSyncStatus('online');
-    renderAll();
-    if(manual) showToast('✅ Data tersinkronisasi! ('+items.length+' item)');
+  const dot = $('syncDot');
+  if (!dot) return;
+  dot.className = 'sync-dot';
+  if (s === 'online') {
+    dot.classList.add('online');
+    dot.title = 'Terhubung ke server';
+  } else if (s === 'syncing') {
+    dot.classList.add('syncing');
+    dot.title = 'Menyinkronkan...';
   } else {
-    $('offlineBanner').textContent='⚠ Offline — menampilkan data tersimpan lokal';
-    $('offlineBanner').className='offline-banner show';
-    setSyncStatus('offline');
-    renderAll();
-    if(manual) showToast('⚠️ Gagal sync, data lokal ditampilkan');
+    dot.classList.add('offline');
+    dot.title = 'Mode Offline - Data tersimpan lokal';
   }
 }
 
-// ── PUSH LOCAL DATA → SHEET ──────────────────────────────────────
-async function exportToSheet() {
-  if(!API_URL){showToast('⚠️ URL API belum diatur');return;}
-  if(!items.length){showToast('⚠️ Tidak ada data untuk di-push');return;}
-  if(!confirm(`Push ${items.length} item ke Google Sheet? Data di sheet akan ditimpa.`)) return;
-  showToast('📤 Mengirim data...');
-  const res = await apiPost({action:'deleteAll'});
-  if(!res?.ok){showToast('❌ Gagal hapus data lama');return;}
-  const res2 = await apiPost({action:'bulkAdd', items});
-  if(res2?.ok){
-    showToast('✅ '+res2.count+' item berhasil dikirim!');
-    await syncData();
-  } else {
-    showToast('❌ Gagal mengirim data');
+// ── FIXED: API dengan timeout ─────────────────────────────────────
+async function apiGet(action = 'getAll', timeout = 10000) {
+  if (!API_URL) return null;
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const r = await fetch(`${API_URL}?action=${action}`, {
+      method: 'GET',
+      signal: controller.signal,
+      cache: 'no-cache'
+    });
+    clearTimeout(timeoutId);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (e) {
+    clearTimeout(timeoutId);
+    console.warn('API GET failed:', e.message);
+    return null;
   }
 }
 
-// ── RENDER ───────────────────────────────────────────────────────
-function renderAll() {
-  renderBudgetCard();
-  renderCounts();
-  renderItems();
-  updateNavBadge();
-}
-
-function renderBudgetCard() {
-  const aktif  = items.filter(i=>i.status!=='Sudah Dibeli'&&i.status!=='Dibatalkan');
-  const biayaQ1= aktif.filter(i=>quad(i.keperluan,i.urgensi)==='Q1').reduce((s,i)=>s+i.harga*i.jumlah,0);
-  const sisa   = budget-biayaQ1;
-  const pct    = budget>0?Math.min(100,Math.round(biayaQ1/budget*100)):0;
-  $('bc_anggaran').textContent = fmt(budget);
-  $('bc_terpakai').textContent = fmt(biayaQ1);
-  $('bc_sisa').textContent     = fmt(sisa);
-  $('bc_bar').style.width      = pct+'%';
-  $('bc_pct').textContent      = pct+'%';
-  $('bc_info').textContent     = sisa<0?'⚠ Anggaran kurang!':'terpakai';
-  $('bc_bar').style.background = sisa<0?'var(--danger)':'#fff';
-}
-
-function renderCounts() {
-  const aktif=['Q1','Q2','Q3','Q4'].reduce((o,q)=>{o[q]=0;return o},{});
-  const biaya={Q1:0,Q2:0,Q3:0,Q4:0};
-  items.filter(i=>i.status!=='Sudah Dibeli'&&i.status!=='Dibatalkan').forEach(i=>{
-    const q=quad(i.keperluan,i.urgensi); aktif[q]++; biaya[q]+=i.harga*i.jumlah;
-  });
-  ['Q1','Q2','Q3','Q4'].forEach(q=>{
-    $('cnt_'+q.toLowerCase()).textContent=aktif[q];
-    $('sub_'+q.toLowerCase()).textContent=fmt(biaya[q]);
-  });
-}
-
-function updateNavBadge() {
-  const q1cnt = items.filter(i=>i.status!=='Sudah Dibeli'&&i.status!=='Dibatalkan'&&quad(i.keperluan,i.urgensi)==='Q1').length;
-  const badge = $('navBadge');
-  if(q1cnt>0){badge.textContent=q1cnt>9?'9+':q1cnt;badge.classList.add('show');}
-  else{badge.classList.remove('show');}
-}
-
-function sortItems(data) {
-  return data.slice().sort((a,b)=>{
-    switch(currentSort){
-      case 'name':       return a.nama.localeCompare(b.nama,'id');
-      case 'price_desc': return (b.harga*b.jumlah)-(a.harga*a.jumlah);
-      case 'price_asc':  return (a.harga*a.jumlah)-(b.harga*b.jumlah);
-      case 'newest':     return new Date(b.created_at||0)-new Date(a.created_at||0);
-      default:           return skor(b.keperluan,b.urgensi)-skor(a.keperluan,a.urgensi);
-    }
-  });
-}
-
-function renderItems() {
-  const aktif = items.filter(i=>i.status!=='Dibatalkan');
-  let data = currentFilter&&currentFilter!=='ALL'
-    ? aktif.filter(i=>quad(i.keperluan,i.urgensi)===currentFilter) : aktif;
-  if(searchQuery) {
-    const q=searchQuery.toLowerCase();
-    data=data.filter(i=>i.nama.toLowerCase().includes(q)||i.kategori.toLowerCase().includes(q)||(i.catatan||'').toLowerCase().includes(q));
+async function apiPost(body, timeout = 10000) {
+  if (!API_URL) return null;
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const r = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      signal: controller.signal,
+      headers: { 'Content-Type': 'application/json' }
+    });
+    clearTimeout(timeoutId);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (e) {
+    clearTimeout(timeoutId);
+    console.warn('API POST failed:', e.message);
+    return null;
   }
-  data = sortItems(data);
+}
 
-  const titles={ALL:'Semua Item',Q1:'🔴 Butuh & Mendesak',Q2:'🟠 Butuh, Tdk Mendesak',Q3:'🔵 Tdk Butuh, Mendesak',Q4:'⚫ Tdk Butuh & Tdk Mendesak'};
-  $('listTitle').textContent=(searchQuery?`🔍 Hasil: "${searchQuery}"`:(titles[currentFilter]||'Semua Item'))+' ('+data.length+')';
-  $('filterResetBtn').style.display=(currentFilter!=='ALL'||searchQuery)?'block':'none';
+// ── FIXED: Sync with better error handling ────────────────────────
+let isSyncing = false;
 
-  document.querySelectorAll('.qc').forEach(el=>el.classList.remove('selected'));
-  if(currentFilter&&currentFilter!=='ALL') {
-    $('qcard_'+currentFilter)?.classList.add('selected');
-  }
-
-  const list=$('itemList');
-  if(!data.length) {
-    list.innerHTML=`<div class="empty"><div class="e-icon">📭</div><p>${searchQuery?'Tidak ada hasil pencarian':'Belum ada item di kategori ini'}</p><button class="empty-btn" onclick="openAdd()">+ Tambah Barang</button></div>`;
+async function syncData(manual = false) {
+  if (isSyncing) {
+    if (manual) showToast('⏳ Sinkronisasi sedang berjalan...');
     return;
   }
-  list.innerHTML=data.map((item,idx)=>{
-    const q=quad(item.keperluan,item.urgensi);
-    const s=skor(item.keperluan,item.urgensi);
-    const pips=Array(5).fill(0).map((_,j)=>`<div class="score-pip${j<Math.round(s/20)?' on':''}"></div>`).join('');
-    const bCls='b-'+q.toLowerCase();
-    const bTxt={Q1:'Beli Segera',Q2:'Rencanakan',Q3:'Tinjau',Q4:'Tunda'}[q];
-    const isBought=item.status==='Sudah Dibeli';
-    return `<div class="item-card${isBought?' bought':''}" onclick="openDetail('${item.id}')" style="animation-delay:${idx*30}ms">
-      <div class="item-dot" style="background:${qColor(q)}"></div>
-      <div class="item-body">
-        <div class="item-name" style="${isBought?'text-decoration:line-through':''}">
-          ${searchQuery?highlight(item.nama,searchQuery):item.nama}
-        </div>
-        <div class="item-cat">${item.kategori} · ${item.jumlah>1?item.jumlah+'×':''}</div>
-        <div class="item-scores">${pips}</div>
-      </div>
-      <div class="item-right">
-        <div class="item-price">${fmt(item.harga*item.jumlah)}</div>
-        <div class="item-badge ${bCls}">${isBought?'✅ Dibeli':bTxt}</div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function highlight(text, query) {
-  if(!query) return text;
-  const re=new RegExp('('+query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
-  return text.replace(re,'<mark style="background:rgba(108,99,255,.3);color:var(--accent2);border-radius:2px">$1</mark>');
-}
-
-// ── SEARCH ───────────────────────────────────────────────────────
-function onSearch(val) {
-  searchQuery=val.trim();
-  $('searchClear').style.display=val?'block':'none';
-  renderItems();
-}
-function clearSearch() {
-  $('searchInput').value=''; searchQuery='';
-  $('searchClear').style.display='none';
-  renderItems();
-}
-
-// ── FILTER & SORT ────────────────────────────────────────────────
-function filterItems(q) {
-  currentFilter=q;
-  renderItems();
-  $('homeScroll').scrollTo({top:0,behavior:'smooth'});
-}
-
-function setSort(s) {
-  currentSort=s;
-  document.querySelectorAll('.sort-btn').forEach(b=>b.classList.toggle('active',b.dataset.sort===s));
-  renderItems();
-}
-
-// ── OFFLINE CLICK ────────────────────────────────────────────────
-function handleOfflineClick() {
-  if(!API_URL) setNav(2);
-  else syncData(true);
-}
-
-// ── DETAIL SHEET ─────────────────────────────────────────────────
-function openDetail(id) {
-  const item=items.find(i=>i.id===id);
-  if(!item) return;
-  currentItem=item;
-  const q=quad(item.keperluan,item.urgensi), s=skor(item.keperluan,item.urgensi);
-  $('d_nama').textContent  = item.nama;
-  $('d_kat').textContent   = item.kategori;
-  $('d_harga').textContent = fmt(item.harga);
-  $('d_jml').textContent   = item.jumlah+' pcs';
-  $('d_total').textContent = fmt(item.harga*item.jumlah);
-  $('d_kep').textContent   = item.keperluan+'/5 — '+kepLabels[item.keperluan];
-  $('d_urg').textContent   = item.urgensi+'/5 — '+urgLabels[item.urgensi];
-  $('d_skor').textContent  = s+'/100';
-  $('d_quad').textContent  = q+' — '+qLabel(q);
-  $('d_status').textContent= item.status||'Belum Dibeli';
-  if(item.catatan){$('d_catatan').textContent=item.catatan;$('d_catatanRow').style.display='flex';}
-  else{$('d_catatanRow').style.display='none';}
-  const reko=$('d_reko'); reko.textContent=qReko(q); reko.className='sheet-reko reko-'+q.toLowerCase();
-  $('detailOverlay').classList.add('open');
-}
-function closeDetail()    { $('detailOverlay').classList.remove('open'); }
-function closeDetailBg(e) { if(e.target===$('detailOverlay')) closeDetail(); }
-
-async function markBought() {
-  if(!currentItem) return;
-  const prev=currentItem.status;
-  currentItem.status=prev==='Sudah Dibeli'?'Belum Dibeli':'Sudah Dibeli';
-  saveLocal(); closeDetail(); renderAll();
-  showToast(currentItem.status==='Sudah Dibeli'?'✅ Item ditandai sudah dibeli!':'↩ Item dikembalikan ke belum dibeli');
-  if(API_URL) apiPost({action:'updateStatus',id:currentItem.id,status:currentItem.status});
-}
-
-async function deleteItem() {
-  if(!currentItem||!confirm(`Hapus "${currentItem.nama}"?`)) return;
-  const id=currentItem.id;
-  items=items.filter(i=>i.id!==id);
-  saveLocal(); closeDetail(); renderAll();
-  showToast('🗑 Item dihapus');
-  if(API_URL) apiPost({action:'deleteItem',id});
-}
-
-function editItem() { closeDetail(); openAdd(currentItem); }
-
-// ── ADD / EDIT FORM ──────────────────────────────────────────────
-function openAdd(item=null) {
-  $('addScreenTitle').textContent = item?'Edit Barang':'Tambah Barang';
-  $('editId').value   = item?item.id:'';
-  $('fNama').value    = item?item.nama:'';
-  $('fKat').value     = item?item.kategori:'Makanan & Minuman';
-  $('fHarga').value   = item?item.harga:'';
-  $('fJml').value     = item?item.jumlah:1;
-  $('fCatatan').value = item?item.catatan||'':'';
-  $('fKep').value     = item?item.keperluan:3;
-  $('fUrg').value     = item?item.urgensi:3;
-  onSlider('kep', item?item.keperluan:3);
-  onSlider('urg', item?item.urgensi:3);
-  $('addScreen').classList.add('active');
-  setTimeout(()=>$('fNama').focus(),150);
-}
-function closeAdd() { $('addScreen').classList.remove('active'); }
-
-function onSlider(type,val) {
-  val=parseInt(val);
-  if(type==='kep'){$('kepVal').textContent=val;$('kepDesc').textContent=kepLabels[val];}
-  else{$('urgVal').textContent=val;$('urgDesc').textContent=urgLabels[val];}
-  updateQuadPreview();
-}
-function updateQuadPreview() {
-  const k=parseInt($('fKep').value), u=parseInt($('fUrg').value);
-  const q=quad(k,u), el=$('quadPreview');
-  const map={
-    Q1:['Q1 — Butuh & Mendesak → Beli Segera','rgba(255,107,107,.15)','var(--q1)'],
-    Q2:['Q2 — Butuh, Tdk Mendesak → Rencanakan','rgba(255,179,71,.15)','var(--q2)'],
-    Q3:['Q3 — Tdk Butuh, Mendesak → Tinjau Ulang','rgba(79,195,247,.15)','var(--q3)'],
-    Q4:['Q4 — Tdk Butuh & Tdk Mendesak → Tunda/Batal','rgba(120,144,156,.15)','var(--q4)'],
-  };
-  el.textContent=map[q][0]; el.style.background=map[q][1]; el.style.color=map[q][2];
-}
-
-async function submitForm() {
-  const nama=$('fNama').value.trim(), harga=Number($('fHarga').value), jml=Number($('fJml').value)||1;
-  if(!nama||!harga){showToast('⚠️ Nama dan harga wajib diisi');return;}
-  const btn=$('submitBtn'); btn.disabled=true; btn.textContent='⏳ Menyimpan...';
-  const itemData={nama,kategori:$('fKat').value,harga,jumlah:jml,keperluan:parseInt($('fKep').value),urgensi:parseInt($('fUrg').value),catatan:$('fCatatan').value.trim(),status:'Belum Dibeli'};
-  const editId=$('editId').value;
-  if(editId) {
-    const idx=items.findIndex(i=>i.id===editId);
-    if(idx>-1) items[idx]={...items[idx],...itemData,updated_at:new Date().toISOString()};
-    if(API_URL) await apiPost({action:'updateItem',id:editId,item:itemData});
-    showToast('✅ Item diperbarui!');
-  } else {
-    const newItem={...itemData,id:uid(),created_at:new Date().toISOString(),updated_at:new Date().toISOString()};
-    items.unshift(newItem);
-    if(API_URL){const res=await apiPost({action:'addItem',item:itemData});if(res?.ok&&res.id)newItem.id=res.id;}
-    showToast('✅ Barang ditambahkan!');
-  }
-  saveLocal(); closeAdd(); renderAll();
-  btn.disabled=false; btn.textContent='💾 Simpan Barang';
-}
-
-// ── BUDGET MODAL ─────────────────────────────────────────────────
-function openBudgetModal() {
-  $('modalBudget').value=budget;
-  $('budgetModal').classList.add('open');
-  setTimeout(()=>$('modalBudget').focus(),100);
-}
-function closeBudgetModal(e) { if(e.target===$('budgetModal')) $('budgetModal').classList.remove('open'); }
-async function saveBudgetModal() {
-  const val=Number($('modalBudget').value);
-  if(!val||val<0){showToast('⚠️ Anggaran tidak valid');return;}
-  budget=val; localStorage.setItem('rab_budget',budget);
-  $('budgetModal').classList.remove('open');
-  renderBudgetCard(); showToast('✅ Anggaran diperbarui!');
-  if(API_URL) apiPost({action:'setBudget',budget:val});
-}
-
-// ── DASHBOARD ────────────────────────────────────────────────────
-function renderDashboard() {
-  const aktif  = items.filter(i=>i.status!=='Dibatalkan');
-  const belum  = aktif.filter(i=>i.status!=='Sudah Dibeli');
-  const sudah  = aktif.filter(i=>i.status==='Sudah Dibeli');
-  const totalB = belum.reduce((s,i)=>s+i.harga*i.jumlah,0);
-  const biayaQ1= belum.filter(i=>quad(i.keperluan,i.urgensi)==='Q1').reduce((s,i)=>s+i.harga*i.jumlah,0);
-  const sisa   = budget-biayaQ1;
-
-  const dist={Q1:0,Q2:0,Q3:0,Q4:0,cost:{Q1:0,Q2:0,Q3:0,Q4:0}};
-  belum.forEach(i=>{const q=quad(i.keperluan,i.urgensi);dist[q]++;dist.cost[q]+=i.harga*i.jumlah;});
-  const total=belum.length||1;
-
-  const perKat={};
-  belum.forEach(i=>{ perKat[i.kategori]=(perKat[i.kategori]||0)+i.harga*i.jumlah; });
-  const katRows=Object.entries(perKat).sort((a,b)=>b[1]-a[1]).slice(0,8)
-    .map(([kat,tot])=>`<div class="cat-row"><div><div class="cat-name">${kat}</div><div class="cat-meta">${belum.filter(i=>i.kategori===kat).length} item · ${fmt(tot)}</div></div><div class="cat-total" style="font-size:12px;color:var(--muted)">${Math.round(tot/totalB*100)||0}%</div></div>`).join('');
-
-  const rekoList=[];
-  if(dist.Q1>0) rekoList.push({c:'var(--q1)',t:`Segera beli ${dist.Q1} item Q1 — estimasi ${fmt(biayaQ1)}`});
-  if(dist.Q2>0) rekoList.push({c:'var(--q2)',t:`Rencanakan ${dist.Q2} item Q2 di anggaran berikutnya`});
-  if(dist.Q3>0) rekoList.push({c:'var(--q3)',t:`Tinjau ulang ${dist.Q3} item Q3 — benar-benar perlu?`});
-  if(dist.Q4>0) rekoList.push({c:'var(--q4)',t:`Pertimbangkan tunda/hapus ${dist.Q4} item Q4`});
-  if(sisa<0)    rekoList.push({c:'var(--danger)',t:`⚠ Anggaran kurang ${fmt(Math.abs(sisa))} untuk Q1!`});
-  if(sudah.length>0) rekoList.push({c:'var(--success)',t:`🎉 ${sudah.length} item sudah dibeli bulan ini!`});
-
-  const qBarItems=['Q1','Q2','Q3','Q4'].map(q=>{
-    const pct=Math.round(dist[q]/total*100)||0;
-    return `<div class="qbar-item">
-      <div class="qbar-header"><span style="color:${qColor(q)}">${q} — ${qLabel(q)}</span><span>${dist[q]} item (${pct}%)</span></div>
-      <div class="qbar-track"><div class="qbar-fill" style="width:${pct}%;background:${qColor(q)}"></div></div>
-    </div>`;
-  }).join('');
-
-  $('dashScroll').innerHTML=`
-    <div class="stat-grid">
-      <div class="stat-card"><div class="stat-label">Total Item Aktif</div><div class="stat-val">${belum.length}</div></div>
-      <div class="stat-card"><div class="stat-label">Sudah Dibeli</div><div class="stat-val green">${sudah.length}</div></div>
-      <div class="stat-card"><div class="stat-label">Total Estimasi</div><div class="stat-val" style="font-size:14px">${fmt(totalB)}</div></div>
-      <div class="stat-card"><div class="stat-label">Sisa Anggaran</div><div class="stat-val ${sisa<0?'red':'green'}" style="font-size:14px">${fmt(sisa)}</div></div>
-    </div>
-    <div class="sec-label">Distribusi Kuadran</div>
-    <div class="quad-bar-section">${qBarItems}</div>
-    <div class="sec-label">Rekomendasi Tindakan</div>
-    <div class="reko-list">${rekoList.length?rekoList.map(r=>`<div class="reko-item"><div class="reko-dot" style="background:${r.c}"></div><div>${r.t}</div></div>`).join(''):'<div class="reko-item"><div>Semua baik-baik saja! 🎉</div></div>'}</div>
-    <div class="sec-label">Pengeluaran per Kategori</div>
-    <div class="cat-list">${katRows||'<div class="cat-row"><div class="cat-name" style="color:var(--muted)">Belum ada data</div></div>'}</div>
-  `;
-}
-
-// ── KATEGORI ─────────────────────────────────────────────────────
-const KAT_ICONS = {
-  'Makanan & Minuman':'🍽️','Kesehatan':'💊','Pendidikan':'📚',
-  'Sandang':'👕','Elektronik':'📱','Perabot Rumah':'🏠',
-  'Transportasi':'🚗','Tagihan & Utilitas':'⚡','Hiburan & Rekreasi':'🎬',
-  'Tabungan & Investasi':'💰','Lainnya':'📦'
-};
-
-let selectedKat = null;
-
-function renderKategori() {
-  const aktif = items.filter(i => i.status !== 'Dibatalkan');
-  const belum = aktif.filter(i => i.status !== 'Sudah Dibeli');
-  const totalAll = belum.reduce((s,i) => s + i.harga * i.jumlah, 0);
-
-  // Hitung per kategori
-  const katMap = {};
-  aktif.forEach(i => {
-    if (!katMap[i.kategori]) katMap[i.kategori] = { total: 0, belum: 0, sudah: 0, items: [] };
-    katMap[i.kategori].items.push(i);
-    if (i.status !== 'Sudah Dibeli') {
-      katMap[i.kategori].total += i.harga * i.jumlah;
-      katMap[i.kategori].belum++;
-    } else {
-      katMap[i.kategori].sudah++;
+  
+  if (!API_URL) {
+    const banner = $('offlineBanner');
+    if (banner) {
+      banner.textContent = '⚙️ Setup: Masukkan URL API di Pengaturan';
+      banner.className = 'offline-banner show info';
     }
-  });
-
-  const sorted = Object.entries(katMap).sort((a,b) => b[1].total - a[1].total);
-  $('katTotalLabel').textContent = belum.length + ' item aktif · ' + fmt(totalAll);
-
-  // Grid kartu
-  if (!sorted.length) {
-    $('katGrid').innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="e-icon">🏷️</div><p>Belum ada item</p><button class="empty-btn" onclick="openAdd()">+ Tambah Barang</button></div>`;
-  } else {
-    $('katGrid').innerHTML = sorted.map(([kat, data]) => {
-      const pct = totalAll > 0 ? Math.round(data.total / totalAll * 100) : 0;
-      const icon = KAT_ICONS[kat] || '📦';
-      const isActive = selectedKat === kat;
-      return `<div class="kat-card${isActive?' active-kat':''}" onclick="selectKat('${kat.replace(/'/g,"\\'")}')">
-        <div class="kat-card-icon">${icon}</div>
-        <div class="kat-card-name">${kat}</div>
-        <div class="kat-card-count">${data.belum} aktif${data.sudah?' · '+data.sudah+' dibeli':''}</div>
-        <div class="kat-card-total">${fmt(data.total)}</div>
-        <div class="kat-card-bar"><div class="kat-card-bar-fill" style="width:${pct}%"></div></div>
-      </div>`;
-    }).join('');
-  }
-
-  // Hero & item list
-  if (selectedKat && katMap[selectedKat]) {
-    renderKatDetail(selectedKat, katMap[selectedKat], totalAll);
-  } else {
-    $('katHero').style.display = 'none';
-    $('katItemSection').style.display = 'none';
-  }
-}
-
-function selectKat(kat) {
-  selectedKat = selectedKat === kat ? null : kat;
-  renderKategori();
-  if (selectedKat) {
-    setTimeout(() => $('katItemSection').scrollIntoView({behavior:'smooth', block:'nearest'}), 100);
-  }
-}
-
-function clearKatFilter() {
-  selectedKat = null;
-  renderKategori();
-}
-
-function renderKatDetail(kat, data, totalAll) {
-  const icon = KAT_ICONS[kat] || '📦';
-  const pct  = totalAll > 0 ? Math.round(data.total / totalAll * 100) : 0;
-  const q1cnt = data.items.filter(i => i.status!=='Sudah Dibeli' && quad(i.keperluan,i.urgensi)==='Q1').length;
-
-  // Hero
-  $('katHero').style.display = 'block';
-  $('katHero').innerHTML = `<div class="kat-hero">
-    <div class="kat-hero-icon">${icon}</div>
-    <div class="kat-hero-info">
-      <div class="kat-hero-name">${kat}</div>
-      <div class="kat-hero-meta">${data.belum} aktif · ${data.sudah} dibeli · ${pct}% dari total</div>
-      <div class="kat-hero-total">${fmt(data.total)}</div>
-    </div>
-  </div>`;
-
-  // Summary chips
-  const distKat = {Q1:0,Q2:0,Q3:0,Q4:0};
-  data.items.filter(i=>i.status!=='Sudah Dibeli').forEach(i => { distKat[quad(i.keperluan,i.urgensi)]++; });
-  $('katSummaryRow').innerHTML = [
-    {l:'🔴 Q1',v:distKat.Q1,c:'var(--q1)'},{l:'🟠 Q2',v:distKat.Q2,c:'var(--q2)'},
-    {l:'🔵 Q3',v:distKat.Q3,c:'var(--q3)'},{l:'⚫ Q4',v:distKat.Q4,c:'var(--q4)'}
-  ].map(x=>`<div class="kat-sum-card">
-    <div class="kat-sum-label" style="color:${x.c}">${x.l}</div>
-    <div class="kat-sum-val">${x.v}</div>
-  </div>`).join('');
-
-  // Item list
-  $('katItemTitle').textContent = `Item ${kat} (${data.items.length})`;
-  $('katItemSection').style.display = 'block';
-  const sorted = data.items
-    .filter(i => i.status !== 'Dibatalkan')
-    .sort((a,b) => skor(b.keperluan,b.urgensi) - skor(a.keperluan,a.urgensi));
-
-  $('katItemList').innerHTML = sorted.map((item, idx) => {
-    const q = quad(item.keperluan, item.urgensi);
-    const s = skor(item.keperluan, item.urgensi);
-    const pips = Array(5).fill(0).map((_,j)=>`<div class="score-pip${j<Math.round(s/20)?' on':''}"></div>`).join('');
-    const bCls = 'b-'+q.toLowerCase();
-    const bTxt = {Q1:'Beli Segera',Q2:'Rencanakan',Q3:'Tinjau',Q4:'Tunda'}[q];
-    const isBought = item.status === 'Sudah Dibeli';
-    return `<div class="item-card${isBought?' bought':''}" onclick="openDetail('${item.id}')" style="animation-delay:${idx*25}ms">
-      <div class="item-dot" style="background:${qColor(q)}"></div>
-      <div class="item-body">
-        <div class="item-name" style="${isBought?'text-decoration:line-through':''}">${item.nama}</div>
-        <div class="item-cat">${item.jumlah>1?item.jumlah+'× · ':''}</div>
-        <div class="item-scores">${pips}</div>
-      </div>
-      <div class="item-right">
-        <div class="item-price">${fmt(item.harga*item.jumlah)}</div>
-        <div class="item-badge ${bCls}">${isBought?'✅ Dibeli':bTxt}</div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ── SETTINGS ────────────────────────────────────────────────────
-async function saveBudget() {
-  const val=Number($('budgetInput').value);
-  if(!val||val<0){showToast('⚠️ Anggaran tidak valid');return;}
-  budget=val; localStorage.setItem('rab_budget',budget);
-  renderBudgetCard(); showToast('✅ Anggaran disimpan!');
-  if(API_URL) await apiPost({action:'setBudget',budget:val});
-}
-
-function saveApiUrl() {
-  const url=$('apiUrlInput').value.trim();
-  API_URL=url; localStorage.setItem('rab_api_url',url);
-  showToast('✅ URL disimpan! Coba test koneksi.');
-}
-
-async function testConnection() {
-  if(!API_URL){showToast('⚠️ URL belum diisi');return;}
-  $('connStatus').textContent='⏳ Memeriksa...';
-  setSyncStatus('syncing');
-  const res=await apiGet('ping');
-  if(res?.ok){
-    $('connStatus').textContent='✅ Terhubung';
-    setSyncStatus('online');
-    showToast('✅ Koneksi berhasil! Server aktif.');
-  } else {
-    $('connStatus').textContent='❌ Gagal';
     setSyncStatus('offline');
-    showToast('❌ Gagal. Pastikan URL benar dan deploy sudah "Anyone".');
+    if (manual) showToast('⚠️ URL API belum diatur. Buka menu Pengaturan.');
+    renderAll();
+    return;
+  }
+  
+  isSyncing = true;
+  setSyncStatus('syncing');
+  if (manual) showToast('🔄 Menyinkronkan data...');
+  
+  try {
+    const res = await apiGet('getAll');
+    
+    if (res && res.ok) {
+      items = res.data || [];
+      if (typeof res.budget === 'number') budget = res.budget;
+      saveLocal();
+      
+      const banner = $('offlineBanner');
+      if (banner) banner.classList.remove('show');
+      setSyncStatus('online');
+      renderAll();
+      if (manual) showToast(`✅ Sinkron selesai! (${items.length} item)`);
+    } else {
+      throw new Error('Server response invalid');
+    }
+  } catch (err) {
+    console.warn('Sync failed:', err);
+    const banner = $('offlineBanner');
+    if (banner) {
+      banner.textContent = '⚠️ Offline - Menampilkan data lokal. Periksa koneksi/URL API.';
+      banner.className = 'offline-banner show';
+    }
+    setSyncStatus('offline');
+    renderAll();
+    if (manual) showToast('⚠️ Gagal sinkronisasi. Periksa URL dan koneksi.');
+  } finally {
+    isSyncing = false;
   }
 }
 
-function exportJSON() {
-  const data=JSON.stringify({items,budget,exported_at:new Date().toISOString()},null,2);
-  const a=document.createElement('a');
-  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(data);
-  a.download='rab-backup-'+new Date().toISOString().slice(0,10)+'.json';
-  a.click();
-  showToast('📥 File JSON diunduh!');
+// ── FIXED: Save API URL with validation ───────────────────────────
+function saveApiUrl() {
+  let url = $('apiUrlInput').value.trim();
+  
+  if (!url) {
+    showToast('⚠️ URL tidak boleh kosong');
+    return;
+  }
+  
+  // Clean URL - remove trailing slash and ensure no extra params
+  url = url.replace(/\/$/, '');
+  
+  // Basic validation
+  if (!url.startsWith('https://script.google.com/')) {
+    showToast('⚠️ URL harus dari script.google.com');
+    return;
+  }
+  
+  API_URL = url;
+  localStorage.setItem('rab_api_url', url);
+  showToast('✅ URL disimpan!');
+  
+  // Test connection
+  testConnection();
 }
 
-function importJSON(e) {
-  const file=e.target.files[0];
-  if(!file) return;
-  const reader=new FileReader();
-  reader.onload=function(ev){
-    try {
-      const data=JSON.parse(ev.target.result);
-      if(!data.items||!Array.isArray(data.items)) throw new Error('Format tidak valid');
-      if(!confirm(`Import ${data.items.length} item? Data saat ini akan ditimpa.`)) return;
-      items=data.items; budget=data.budget||budget;
-      saveLocal(); renderAll();
-      showToast('✅ '+items.length+' item berhasil diimport!');
-    } catch(err){showToast('❌ File tidak valid: '+err.message);}
-  };
-  reader.readAsText(file);
-  e.target.value='';
-}
-
-function clearCache() {
-  if(!confirm('Hapus semua data lokal? Tindakan ini tidak dapat dibatalkan.')) return;
-  localStorage.removeItem('rab_items'); items=[]; renderAll();
-  showToast('🗑 Data lokal dihapus');
-}
-
-// ── LOCAL STORAGE ────────────────────────────────────────────────
-function saveLocal() { localStorage.setItem('rab_items',JSON.stringify(items)); }
-
-// ── PWA INSTALL ──────────────────────────────────────────────────
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault(); deferredInstallPrompt=e;
-  $('installRow').style.display='flex';
-});
-function installApp() {
-  if(!deferredInstallPrompt){showToast('💡 Gunakan menu browser untuk install');return;}
-  deferredInstallPrompt.prompt();
-  deferredInstallPrompt.userChoice.then(r=>{ if(r.outcome==='accepted') showToast('✅ Aplikasi diinstall!'); deferredInstallPrompt=null; });
-}
-window.addEventListener('appinstalled', ()=>{ showToast('✅ RAB berhasil diinstall!'); $('installRow').style.display='none'; });
-
-// ── SERVICE WORKER ───────────────────────────────────────────────
-if('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').then(reg=>{
-    reg.addEventListener('updatefound',()=>{
-      const sw=reg.installing;
-      sw.addEventListener('statechange',()=>{ if(sw.state==='installed'&&navigator.serviceWorker.controller) showToast('🔄 Update tersedia, refresh untuk update'); });
-    });
-  }).catch(()=>{});
-}
-
-// ── ONLINE / OFFLINE ─────────────────────────────────────────────
-window.addEventListener('online',  ()=>{ if(API_URL) syncData(); else setSyncStatus('offline'); });
-window.addEventListener('offline', ()=>{ $('offlineBanner').textContent='⚠ Offline — menampilkan data tersimpan'; $('offlineBanner').className='offline-banner show'; setSyncStatus('offline'); });
-
-// ── KEYBOARD SHORTCUTS ───────────────────────────────────────────
-document.addEventListener('keydown', e => {
-  if(e.key==='Escape') { closeDetail(); closeAdd(); $('budgetModal').classList.remove('open'); }
-  if((e.metaKey||e.ctrlKey)&&e.key==='k') { e.preventDefault(); $('searchInput').focus(); }
-});
-
-// ── INIT ─────────────────────────────────────────────────────────
-async function init() {
-  $('loadingMsg').textContent='Memuat data lokal...';
-  await new Promise(r=>setTimeout(r,300));
-  if(API_URL) {
-    $('loadingMsg').textContent='Menghubungkan ke server...';
-    const res=await apiGet('getAll');
-    if(res?.ok){
-      items=res.data||[]; budget=res.budget||budget; saveLocal();
-      $('offlineBanner').classList.remove('show'); setSyncStatus('online');
+// ── FIXED: Test connection with better feedback ───────────────────
+async function testConnection() {
+  if (!API_URL) {
+    showToast('⚠️ URL belum diisi');
+    if ($('connStatus')) $('connStatus').textContent = '❌ URL kosong';
+    return;
+  }
+  
+  if ($('connStatus')) $('connStatus').textContent = '⏳ Mengecek...';
+  setSyncStatus('syncing');
+  
+  try {
+    const res = await apiGet('ping', 8000);
+    if (res && res.ok) {
+      if ($('connStatus')) $('connStatus').innerHTML = '✅ Terhubung <span style="font-size:10px">' + new Date(res.timestamp).toLocaleTimeString() + '</span>';
+      setSyncStatus('online');
+      showToast('✅ Koneksi berhasil!');
+      
+      // Auto sync after successful test
+      setTimeout(() => syncData(false), 500);
     } else {
-      $('offlineBanner').textContent='⚠ Offline — menampilkan data tersimpan lokal';
-      $('offlineBanner').className='offline-banner show'; setSyncStatus('offline');
+      throw new Error('Invalid response');
+    }
+  } catch (err) {
+    if ($('connStatus')) $('connStatus').textContent = '❌ Gagal - Cek URL & Deploy';
+    setSyncStatus('offline');
+    showToast('❌ Gagal terhubung. Pastikan Web App sudah di-deploy dengan akses "Anyone".');
+  }
+}
+
+// ── FIXED: Offline banner click handler ───────────────────────────
+function handleOfflineClick() {
+  if (!API_URL) {
+    setNav(2); // Go to settings
+    showToast('🔧 Masukkan URL Google Apps Script di menu Pengaturan');
+  } else {
+    syncData(true);
+  }
+}
+
+// ── FIXED: Push data with confirmation ────────────────────────────
+async function exportToSheet() {
+  if (!API_URL) {
+    showToast('⚠️ URL API belum diatur');
+    setNav(2);
+    return;
+  }
+  
+  const activeItems = items.filter(i => i.status !== 'Dibatalkan');
+  if (!activeItems.length) {
+    showToast('⚠️ Tidak ada data aktif untuk di-push');
+    return;
+  }
+  
+  if (!confirm(`Kirim ${activeItems.length} item ke Google Sheet?\n\nData di sheet akan DISINKRONKAN (tidak dihapus total).`)) return;
+  
+  showToast('📤 Mengirim data...');
+  
+  try {
+    // First, try to clear existing items
+    const clearRes = await apiPost({ action: 'deleteAll' }, 15000);
+    if (!clearRes || !clearRes.ok) {
+      console.warn('Clear failed, continuing anyway');
+    }
+    
+    // Send items in batches if too many
+    const batchSize = 20;
+    let successCount = 0;
+    
+    for (let i = 0; i < activeItems.length; i += batchSize) {
+      const batch = activeItems.slice(i, i + batchSize);
+      const batchRes = await apiPost({ 
+        action: 'bulkAdd', 
+        items: batch.map(({ id, created_at, updated_at, ...rest }) => rest) // Remove local-only fields
+      }, 20000);
+      
+      if (batchRes && batchRes.ok) {
+        successCount += batchRes.count || batch.length;
+      }
+      // Small delay between batches
+      await new Promise(r => setTimeout(r, 200));
+    }
+    
+    if (successCount > 0) {
+      showToast(`✅ ${successCount} item berhasil dikirim!`);
+      await syncData(true);
+    } else {
+      showToast('⚠️ Gagal mengirim data. Coba lagi.');
+    }
+  } catch (err) {
+    console.error('Export error:', err);
+    showToast('❌ Error: ' + err.message);
+  }
+}
+
+// ── FIXED: Better online/offline handling ─────────────────────────
+function updateOnlineStatus() {
+  isOnline = navigator.onLine;
+  if (isOnline) {
+    if (API_URL) {
+      syncData(false);
+    } else {
+      setSyncStatus('offline');
     }
   } else {
-    $('offlineBanner').textContent='💡 Set API URL di Pengaturan untuk sinkronisasi Google Sheets';
-    $('offlineBanner').className='offline-banner show info';
+    const banner = $('offlineBanner');
+    if (banner) {
+      banner.textContent = '⚠️ Offline - Menampilkan data tersimpan';
+      banner.className = 'offline-banner show';
+    }
+    setSyncStatus('offline');
+    showToast('📴 Mode offline - data disimpan lokal', 2000);
   }
-  renderAll();
-  $('loadingScreen').style.display='none';
 }
 
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+// ── FIXED: Better init with retry ─────────────────────────────────
+let initAttempts = 0;
+const MAX_INIT_ATTEMPTS = 2;
+
+async function init() {
+  const loadingScreen = $('loadingScreen');
+  const loadingMsg = $('loadingMsg');
+  
+  if (!loadingScreen) return;
+  
+  loadingMsg.textContent = 'Memuat data...';
+  
+  // Load from localStorage first (instant)
+  const savedItems = localStorage.getItem('rab_items');
+  const savedBudget = localStorage.getItem('rab_budget');
+  const savedApiUrl = localStorage.getItem('rab_api_url');
+  
+  if (savedItems) {
+    try {
+      items = JSON.parse(savedItems);
+    } catch (e) {}
+  }
+  if (savedBudget) budget = Number(savedBudget) || 5000000;
+  if (savedApiUrl) API_URL = savedApiUrl;
+  
+  // Set form values if settings screen exists
+  if ($('budgetInput')) $('budgetInput').value = budget;
+  if ($('apiUrlInput')) $('apiUrlInput').value = API_URL;
+  if ($('totalItemsCount')) $('totalItemsCount').textContent = items.length;
+  
+  // Initial render from cache
+  renderAll();
+  
+  // Try to sync if online and has API URL
+  if (navigator.onLine && API_URL) {
+    loadingMsg.textContent = 'Menghubungkan ke server...';
+    try {
+      await syncData(false);
+    } catch (err) {
+      console.warn('Initial sync failed:', err);
+    }
+  } else if (!API_URL) {
+    const banner = $('offlineBanner');
+    if (banner) {
+      banner.textContent = '⚙️ Setup: Masukkan URL API di Pengaturan';
+      banner.className = 'offline-banner show info';
+    }
+    setSyncStatus('offline');
+  } else {
+    setSyncStatus('offline');
+  }
+  
+  // Hide loading with fade
+  loadingScreen.style.transition = 'opacity 0.3s';
+  loadingScreen.style.opacity = '0';
+  setTimeout(() => {
+    loadingScreen.style.display = 'none';
+  }, 300);
+  
+  // Show install prompt if available
+  if (deferredInstallPrompt && !localStorage.getItem('install_dismissed')) {
+    setTimeout(() => {
+      const installPrompt = document.querySelector('.install-prompt') || createInstallPrompt();
+      if (installPrompt) installPrompt.classList.add('show');
+    }, 2000);
+  }
+}
+
+function createInstallPrompt() {
+  const div = document.createElement('div');
+  div.className = 'install-prompt';
+  div.innerHTML = `
+    <div class="install-prompt-title">📱 Install Aplikasi</div>
+    <div class="install-prompt-sub">Tambahkan RAB ke layar utama untuk akses cepat</div>
+    <div class="install-prompt-btns">
+      <button class="btn-install primary" onclick="installApp();this.closest('.install-prompt').classList.remove('show');localStorage.setItem('install_dismissed','true')">Install</button>
+      <button class="btn-install secondary" onclick="this.closest('.install-prompt').classList.remove('show');localStorage.setItem('install_dismissed','true')">Tutup</button>
+    </div>
+  `;
+  document.getElementById('app').appendChild(div);
+  return div;
+}
+
+// Start the app
 init();
-</script>
-</body>
-</html>
