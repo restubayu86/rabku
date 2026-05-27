@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rab-v2.0.0';
+const CACHE_NAME = 'rab-v2.0.1';
 
 self.addEventListener('install', e => {
   e.waitUntil(
