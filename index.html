@@ -278,6 +278,34 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 .offline-banner.show{display:block}
 .offline-banner.info{background:rgba(108,99,255,.15);color:var(--accent2)}
 
+/* KATEGORI SCREEN */
+#kategoriScreen .scroll{padding:12px 16px calc(80px + var(--safe-bot))}
+.kat-hero{background:linear-gradient(135deg,#232338,#2d2d48);border-radius:20px;padding:16px;margin-bottom:4px;display:flex;gap:12px;align-items:center}
+.kat-hero-icon{font-size:32px;width:56px;height:56px;background:var(--surface3);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.kat-hero-info{flex:1;min-width:0}
+.kat-hero-name{font-size:18px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kat-hero-meta{font-size:12px;color:var(--muted);margin-top:3px}
+.kat-hero-total{font-size:16px;font-weight:700;color:var(--accent2);margin-top:4px}
+.kat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+.kat-card{background:var(--surface);border-radius:var(--radius);padding:14px;cursor:pointer;transition:transform .15s,background .15s;border:1.5px solid var(--border);display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
+.kat-card:active{transform:scale(.96);background:var(--surface2)}
+.kat-card.active-kat{border-color:var(--accent2)}
+.kat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--accent);transform:scaleX(0);transition:transform .2s;transform-origin:left}
+.kat-card.active-kat::after{transform:scaleX(1)}
+.kat-card-icon{font-size:22px}
+.kat-card-name{font-size:12px;font-weight:600;color:var(--text)}
+.kat-card-count{font-size:11px;color:var(--muted)}
+.kat-card-total{font-size:13px;font-weight:700;color:var(--accent2);margin-top:2px}
+.kat-card-bar{height:3px;background:var(--surface3);border-radius:2px;margin-top:4px;overflow:hidden}
+.kat-card-bar-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .6s ease}
+.kat-detail-header{display:flex;justify-content:space-between;align-items:center;margin:16px 0 10px}
+.kat-detail-title{font-size:13px;font-weight:600}
+.kat-detail-clear{font-size:11px;color:var(--accent2);cursor:pointer}
+.kat-summary-row{display:flex;gap:8px;margin-bottom:12px}
+.kat-sum-card{flex:1;background:var(--surface);border-radius:12px;padding:10px 12px;border:1px solid var(--border)}
+.kat-sum-label{font-size:10px;color:var(--muted);margin-bottom:3px}
+.kat-sum-val{font-size:15px;font-weight:700}
+
 /* INSTALL PROMPT */
 .install-prompt{position:absolute;bottom:calc(72px + var(--safe-bot) + 70px);left:16px;right:16px;background:var(--surface);border-radius:16px;padding:14px;border:1px solid var(--border);z-index:15;display:none;box-shadow:0 8px 32px rgba(0,0,0,.4)}
 .install-prompt.show{display:block}
@@ -597,6 +625,34 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
     </div>
   </div>
 
+  <!-- ══ KATEGORI ══ -->
+  <div class="screen" id="kategoriScreen">
+    <div class="appbar" style="padding-bottom:14px">
+      <div class="appbar-top">
+        <div><div class="appbar-title" style="font-size:20px">Kategori</div></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:8px" id="katTotalLabel">0 item aktif</div>
+      </div>
+    </div>
+    <div class="scroll" id="katScroll">
+      <!-- Hero selected kategori -->
+      <div id="katHero" style="display:none"></div>
+
+      <!-- Grid kartu kategori -->
+      <div class="sec-label" style="margin-top:4px">Semua Kategori</div>
+      <div class="kat-grid" id="katGrid"></div>
+
+      <!-- Item list per kategori -->
+      <div id="katItemSection" style="display:none">
+        <div class="kat-detail-header">
+          <div class="kat-detail-title" id="katItemTitle">Item</div>
+          <div class="kat-detail-clear" onclick="clearKatFilter()">Lihat Semua ✕</div>
+        </div>
+        <div class="kat-summary-row" id="katSummaryRow"></div>
+        <div id="katItemList"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- BOTTOM NAV -->
   <div class="bottom-nav">
     <div class="nav-item active" id="nav0" onclick="setNav(0)">
@@ -607,6 +663,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
     <div class="nav-item" id="nav1" onclick="setNav(1)">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
       <span>Dashboard</span>
+    </div>
+    <div class="nav-item" id="nav3" onclick="setNav(3)">
+      <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      <span>Kategori</span>
     </div>
     <div class="nav-item" id="nav2" onclick="setNav(2)">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
@@ -708,11 +768,15 @@ setInterval(updateClock, 15000);
 updateClock();
 
 // ── NAV ──────────────────────────────────────────────────────────
-const screens = ['homeScreen','dashScreen','settingsScreen'];
+const screens = ['homeScreen','dashScreen','settingsScreen','kategoriScreen'];
 function setNav(i) {
   screens.forEach((s,j) => {
     $(s).classList.toggle('active', j===i);
-    $('nav'+j).classList.toggle('active', j===i);
+  });
+  // nav ids: 0,1,2,3 but nav2=settings nav3=kategori
+  [0,1,2,3].forEach(j => {
+    const el = $('nav'+j);
+    if(el) el.classList.toggle('active', j===i);
   });
   if(i===1) renderDashboard();
   if(i===2) {
@@ -720,6 +784,7 @@ function setNav(i) {
     $('apiUrlInput').value = API_URL;
     $('totalItemsCount').textContent = items.length;
   }
+  if(i===3) renderKategori();
 }
 
 // ── API ──────────────────────────────────────────────────────────
@@ -1095,6 +1160,133 @@ function renderDashboard() {
     <div class="sec-label">Pengeluaran per Kategori</div>
     <div class="cat-list">${katRows||'<div class="cat-row"><div class="cat-name" style="color:var(--muted)">Belum ada data</div></div>'}</div>
   `;
+}
+
+// ── KATEGORI ─────────────────────────────────────────────────────
+const KAT_ICONS = {
+  'Makanan & Minuman':'🍽️','Kesehatan':'💊','Pendidikan':'📚',
+  'Sandang':'👕','Elektronik':'📱','Perabot Rumah':'🏠',
+  'Transportasi':'🚗','Tagihan & Utilitas':'⚡','Hiburan & Rekreasi':'🎬',
+  'Tabungan & Investasi':'💰','Lainnya':'📦'
+};
+
+let selectedKat = null;
+
+function renderKategori() {
+  const aktif = items.filter(i => i.status !== 'Dibatalkan');
+  const belum = aktif.filter(i => i.status !== 'Sudah Dibeli');
+  const totalAll = belum.reduce((s,i) => s + i.harga * i.jumlah, 0);
+
+  // Hitung per kategori
+  const katMap = {};
+  aktif.forEach(i => {
+    if (!katMap[i.kategori]) katMap[i.kategori] = { total: 0, belum: 0, sudah: 0, items: [] };
+    katMap[i.kategori].items.push(i);
+    if (i.status !== 'Sudah Dibeli') {
+      katMap[i.kategori].total += i.harga * i.jumlah;
+      katMap[i.kategori].belum++;
+    } else {
+      katMap[i.kategori].sudah++;
+    }
+  });
+
+  const sorted = Object.entries(katMap).sort((a,b) => b[1].total - a[1].total);
+  $('katTotalLabel').textContent = belum.length + ' item aktif · ' + fmt(totalAll);
+
+  // Grid kartu
+  if (!sorted.length) {
+    $('katGrid').innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="e-icon">🏷️</div><p>Belum ada item</p><button class="empty-btn" onclick="openAdd()">+ Tambah Barang</button></div>`;
+  } else {
+    $('katGrid').innerHTML = sorted.map(([kat, data]) => {
+      const pct = totalAll > 0 ? Math.round(data.total / totalAll * 100) : 0;
+      const icon = KAT_ICONS[kat] || '📦';
+      const isActive = selectedKat === kat;
+      return `<div class="kat-card${isActive?' active-kat':''}" onclick="selectKat('${kat.replace(/'/g,"\\'")}')">
+        <div class="kat-card-icon">${icon}</div>
+        <div class="kat-card-name">${kat}</div>
+        <div class="kat-card-count">${data.belum} aktif${data.sudah?' · '+data.sudah+' dibeli':''}</div>
+        <div class="kat-card-total">${fmt(data.total)}</div>
+        <div class="kat-card-bar"><div class="kat-card-bar-fill" style="width:${pct}%"></div></div>
+      </div>`;
+    }).join('');
+  }
+
+  // Hero & item list
+  if (selectedKat && katMap[selectedKat]) {
+    renderKatDetail(selectedKat, katMap[selectedKat], totalAll);
+  } else {
+    $('katHero').style.display = 'none';
+    $('katItemSection').style.display = 'none';
+  }
+}
+
+function selectKat(kat) {
+  selectedKat = selectedKat === kat ? null : kat;
+  renderKategori();
+  if (selectedKat) {
+    setTimeout(() => $('katItemSection').scrollIntoView({behavior:'smooth', block:'nearest'}), 100);
+  }
+}
+
+function clearKatFilter() {
+  selectedKat = null;
+  renderKategori();
+}
+
+function renderKatDetail(kat, data, totalAll) {
+  const icon = KAT_ICONS[kat] || '📦';
+  const pct  = totalAll > 0 ? Math.round(data.total / totalAll * 100) : 0;
+  const q1cnt = data.items.filter(i => i.status!=='Sudah Dibeli' && quad(i.keperluan,i.urgensi)==='Q1').length;
+
+  // Hero
+  $('katHero').style.display = 'block';
+  $('katHero').innerHTML = `<div class="kat-hero">
+    <div class="kat-hero-icon">${icon}</div>
+    <div class="kat-hero-info">
+      <div class="kat-hero-name">${kat}</div>
+      <div class="kat-hero-meta">${data.belum} aktif · ${data.sudah} dibeli · ${pct}% dari total</div>
+      <div class="kat-hero-total">${fmt(data.total)}</div>
+    </div>
+  </div>`;
+
+  // Summary chips
+  const distKat = {Q1:0,Q2:0,Q3:0,Q4:0};
+  data.items.filter(i=>i.status!=='Sudah Dibeli').forEach(i => { distKat[quad(i.keperluan,i.urgensi)]++; });
+  $('katSummaryRow').innerHTML = [
+    {l:'🔴 Q1',v:distKat.Q1,c:'var(--q1)'},{l:'🟠 Q2',v:distKat.Q2,c:'var(--q2)'},
+    {l:'🔵 Q3',v:distKat.Q3,c:'var(--q3)'},{l:'⚫ Q4',v:distKat.Q4,c:'var(--q4)'}
+  ].map(x=>`<div class="kat-sum-card">
+    <div class="kat-sum-label" style="color:${x.c}">${x.l}</div>
+    <div class="kat-sum-val">${x.v}</div>
+  </div>`).join('');
+
+  // Item list
+  $('katItemTitle').textContent = `Item ${kat} (${data.items.length})`;
+  $('katItemSection').style.display = 'block';
+  const sorted = data.items
+    .filter(i => i.status !== 'Dibatalkan')
+    .sort((a,b) => skor(b.keperluan,b.urgensi) - skor(a.keperluan,a.urgensi));
+
+  $('katItemList').innerHTML = sorted.map((item, idx) => {
+    const q = quad(item.keperluan, item.urgensi);
+    const s = skor(item.keperluan, item.urgensi);
+    const pips = Array(5).fill(0).map((_,j)=>`<div class="score-pip${j<Math.round(s/20)?' on':''}"></div>`).join('');
+    const bCls = 'b-'+q.toLowerCase();
+    const bTxt = {Q1:'Beli Segera',Q2:'Rencanakan',Q3:'Tinjau',Q4:'Tunda'}[q];
+    const isBought = item.status === 'Sudah Dibeli';
+    return `<div class="item-card${isBought?' bought':''}" onclick="openDetail('${item.id}')" style="animation-delay:${idx*25}ms">
+      <div class="item-dot" style="background:${qColor(q)}"></div>
+      <div class="item-body">
+        <div class="item-name" style="${isBought?'text-decoration:line-through':''}">${item.nama}</div>
+        <div class="item-cat">${item.jumlah>1?item.jumlah+'× · ':''}</div>
+        <div class="item-scores">${pips}</div>
+      </div>
+      <div class="item-right">
+        <div class="item-price">${fmt(item.harga*item.jumlah)}</div>
+        <div class="item-badge ${bCls}">${isBought?'✅ Dibeli':bTxt}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ── SETTINGS ────────────────────────────────────────────────────
